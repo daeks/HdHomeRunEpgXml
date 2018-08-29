@@ -170,7 +170,7 @@ def ProcessProgram(xml, program, guideName):
 						continue
 					else:
 						#Set the type to what the IMDB says
-						ET.SubElement(xmlProgram, "category",lang="en").text = imdbData[1]
+						ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[1]).lower()
 						addedType=True
 						#Have we added a fake episode yet?
 						if (addedEpisode == False):
