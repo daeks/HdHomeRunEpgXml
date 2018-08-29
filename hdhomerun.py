@@ -32,6 +32,9 @@
 
 import sys, json, urllib3, datetime, subprocess,time,os
 import xml.etree.cElementTree as ET
+import gzip
+import shutil
+import csv
 from datetime import datetime
 from xml.dom import minidom
 from pprint import pprint
@@ -132,40 +135,119 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
 
+	addedType = False
 
-	if 'Filter' in program:
+	imdbData = -1
 
-		#Search the filters and see if it is a movie
-		FoundMovieCategory = False
+	if 'filter' in program:
+
 		for filter in program['Filter']:
+			
 			filterstringLower = str(filter).lower()
-			if (filterstringLower == "movies"):
-				FoundMovieCategory = True
-				break
-		
-		#If we didn't find the movie category, and we haven't added an episode flag, lets do it!
-		if FoundMovieCategory == False and addedEpisode == False:
-			ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-			#create a fake episode number for it
+			
+			#Does HdHomeRun think it is a movie?
+			if (filterstringLower=="movies"):
+				#Yes, try to find the movie in the database	
+				imdbData = FindTitle(program['Title'])
+				
+				#Does the movie not exist in the IMDB database?
+				if ( imdbData == 0 ):
+					#Have we added a fake episode yet?
+					if (addedEpisode == False):
+						#Ok, we will flag it as a series to get it out of movies
+						ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+						#Add fake series/episode info
+						ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
+						ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+						addedType= True
+					continue
+				else:
+					#Does the Imdb say it's a movie?
+					if ( imdbData[1] == "movie" ):
+						#yes, ok, add the tag
+						ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
+						addedType=True
+						continue
+					else:
+						#Set the type to what the IMDB says
+						ET.SubElement(xmlProgram, "category",lang="en").text = imdbData[1]
+						addedType=True
+						#Have we added a fake episode yet?
+						if (addedEpisode == False):
+							ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+							ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
+							ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+			else:
+
+				#ok, just add whatever the category is to the record.
+				ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
+
+	if ( addedType == False ):
+		imdbData = FindTitle(program['Title'])
+		if (imdbData==0):
+			words = str(program['Title']).split()
+			if 'News' in words :
+				ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+			else:
+				if	('Sports' in words):
+					ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+				else:
+					if ('Football' in words):
+						ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+					else:
+						if ('Soccer' in words):
+							ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+						else:
+							if ('Baseball' in words):
+								ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+							else:
+								if ('Dance' in words):
+									ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+								else:
+									if ('Dancing' in words):
+										ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+									else:
+										if ('Olympics' in words):
+											ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+										else:
+											if ('Cycling' in words):
+												ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+											else:
+												if ('Billiards' in words):
+													ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+												else:
+													if ('BasketBall' in words):
+														ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+													else:
+														if ('Athletics' in words):
+															ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+														else:
+															if ('Boxing' in words):
+																ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+															else:
+																if ('Cricket' in words):
+																	ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+																else:
+																	if ('Fencing' in words): 
+																		ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
+																	else:
+																		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
-			addedEpisode = True
+		else:
+			ET.SubElement(xmlProgram, "category",lang="en").text = imdbData[1]
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
 
-		for filter in program['Filter']:
-			#Lowercase the filter... apearenttly Plex is case sensitive
-			filterstringLower = str(filter).lower()
-			#add the filter as a category
-			ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
-			#If the filter is news or sports...
-			# if (filterstringLower == "news" or filterstringLower == "sports"):
-			# 	#And the show didn't have it's own episode number...
-			# 	if ( addedEpisode == False ):
-			# 		#WriteLog("-------> Creating Fake Season and Episode for News or Sports show.")
-			# 		#add a category for series
-			# 		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-			# 		#create a fake episode number for it
-			# 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
-			# 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+	if imdbData == -1:
+		imdbData = FindTitle(program['Title'])
+	
+	if (imdbData != 0):
+		words = str(imdbData[8]).split(',')
+		for word in words:
+			if (str(word).strip()):
+				ET.SubElement(xmlProgram, "category",lang="en").text = word.lower()
+
 
 	#Return the endtime so we know where to start from on next loop.
 	return program['EndTime']
@@ -299,7 +381,9 @@ def ClearLog():
 	if os.path.exists("HdHomerun.log"):
   		os.remove("HdHomerun.log")
 	if os.path.exists("hdhomerun.xml"):
-  		os.remove("hdhomerun.xml")		  
+  		os.remove("hdhomerun.xml")	
+		  		  
+	
 
 def DateTimeToEpisode():
 	timestamp = time.time()
@@ -320,18 +404,137 @@ def WriteLog(message):
 	time_now = datetime.fromtimestamp(timestamp)
 	timeString = time_now.strftime('%Y%m%d%H%M%S')
 
-	with open ('HdHomerun.log','ab') as logfile:
+	with open ('HdHomerun.log','a') as logfile:
 		output = str(timeString) + " " + str(message) + "\n"
-		logfile.write(output.encode('utf-8') )
+		logfile.write(output )
 	print(output.encode('utf-8'))
+
+def WriteCacheDate():
+	if not os.path.exists("cache"):
+		os.makedirs("cache")
+	timestamp = time.time()
+	time_now = datetime.fromtimestamp(timestamp)
+	timeString = time_now.strftime('%Y%m')
+	
+	with open ("cache/" + timeString + ".txt",'w') as logfile:
+		logfile.write("")
+
+def getLetter(string,position):
+	word = str(string).lower()
+	letter = "_"
+	if ( len (word) > position ):
+		letter = word[position]
+	
+	if (letter < 'a' or letter > 'z'):
+		letter = '_'
+	
+	return letter
+	
+def WriteDb(row):
+
+	if not os.path.exists("cache"):
+		os.makedirs("cache")
+
+	L1 = getLetter( row[2] , 0 )
+	L2 = getLetter( row[2] , 3 )
+	L3 = getLetter( row[2] , 5 )
+	#L4 = getLetter( row[2] , 3 )
+	L4 = "_"
+	#L5 = getLetter( row[2] , 4 )
+	L5 = "_"
+
+	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
+
+	with open (filename,'a',newline='\n') as tsvfile:
+		spamwriter = csv.writer(tsvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+		spamwriter.writerow(row)
+		
+def dumpCache():
+	if os.path.exists("title.basics.tsv"):
+  		os.remove("title.basics.tsv")	
+	if os.path.exists("title.basics.tsv.gz"):
+  		os.remove("title.basics.tsv.gz")	
+	for the_file in os.listdir("cache"):
+		file_path = os.path.join("cache", the_file)
+		try:
+			if os.path.isfile(file_path):
+				os.unlink(file_path)
+		except Exception as e:
+			print(e)
+
+def LoadImdb():
+	if not os.path.exists("cache"):
+		os.makedirs("cache")
+
+	timestamp = time.time()
+	time_now = datetime.fromtimestamp(timestamp)
+	timeString = time_now.strftime('%Y%m')
+
+
+	if os.path.exists("cache/" + timeString + ".txt"):
+		#We have already loaded the database for the day, no need to reload.
+		return
+
+	WriteLog("Dumping Cache")
+
+	dumpCache()
+
+	chunk_size=1024
+	http = urllib3.PoolManager()
+	r = http.request('GET', "https://datasets.imdbws.com/title.basics.tsv.gz", preload_content=False)
+
+	with open("title.basics.tsv.gz", 'wb') as out:
+		while True:
+	 		data = r.read(chunk_size)
+	 		if not data:
+	 			break
+	 		out.write(data)
+
+	with gzip.open('title.basics.tsv.gz', 'rb') as f_in:
+	 	with open('title.basics.tsv', 'wb') as f_out:
+	 		shutil.copyfileobj(f_in, f_out)		
+	
+	with open('title.basics.tsv', encoding="utf8") as tsvfile:
+		reader = csv.reader(tsvfile, delimiter='\t')
+		for row in reader:
+			WriteDb(row)
+	
+	WriteCacheDate()
+	
+
+
+def FindTitle(showTitle):
+	
+	L1 = getLetter( showTitle , 0 )
+	L2 = getLetter( showTitle , 3 )
+	L3 = getLetter( showTitle , 5 )
+	# L4 = getLetter( showTitle , 3 )
+	L4 = "_"
+	# L5 = getLetter( showTitle , 4 )
+	L5 = "_"
+
+	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
+
+	if os.path.exists(filename):
+		with open(filename,  encoding = "ISO-8859-1") as tsvfile:
+			reader = csv.reader(tsvfile, delimiter='\t')
+			for row in reader:
+				if row[2] == showTitle or row[3]==showTitle:
+					return row
+	return 0
 
 
 def main():
-	ClearLog()
-	print("Downloading Content...  Please wait.")
-	print("Check the log for progress.")
+
 	WriteLog("Starting...")
 
+	WriteLog("Clearing log files...")
+	
+	ClearLog()
+	
+	WriteLog("Downloading the IMDB databases and sorting it, this takes 30 minutes.")
+	LoadImdb()
+	
 	xml = ET.Element("tv")
 	
 	try:
