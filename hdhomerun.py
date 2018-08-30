@@ -108,6 +108,7 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement(xmlProgram,"credits").text = ""
 
 	addedEpisode = False
+	invalidPreviousShown = False
 
 	if 'EpisodeNumber' in program:
 		#add the friendly display
@@ -123,10 +124,7 @@ def ProcessProgram(xml, program, guideName):
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 		addedEpisode = True
 
-	if 'OriginalAirdate' in program:
-		if program['OriginalAirdate'] > 0:
-			#The 86400 is because the HdHomeRun feed is off by a day, this fixes that.
-			ET.SubElement(xmlProgram, "previously-shown", start = datetime.fromtimestamp(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+
 				
 	if 'ImageURL' in program:
 		ET.SubElement(xmlProgram, "icon", src=program['ImageURL'])
@@ -174,54 +172,58 @@ def ProcessProgram(xml, program, guideName):
 			else:
 				#ok, just add whatever the category is to the record.
 				ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
+				if (filterstringLower == "news"):
+					invalidPreviousShown=True
+
 
 	if ( addedEpisode == False ):
 		if (imdbData==0):
 			#Lets do a check for keywords in the Title and force a category if we get a match
-			words = str(program['Title']).split()
-			if 'News' in words :
+			words = str(program['Title']).lower().split()
+			if 'news' in words :
 				ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+				invalidPreviousShown = True
 			else:
-				if	('Sports' in words):
+				if	('sports' in words):
 					ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 				else:
-					if ('Football' in words):
+					if ('football' in words):
 						ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 					else:
-						if ('Soccer' in words):
+						if ('soccer' in words):
 							ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 						else:
-							if ('Baseball' in words):
+							if ('baseball' in words):
 								ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 							else:
-								if ('Dance' in words):
+								if ('dance' in words):
 									ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 								else:
-									if ('Dancing' in words):
+									if ('dancing' in words):
 										ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 									else:
-										if ('Olympics' in words):
+										if ('olympics' in words):
 											ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 										else:
-											if ('Cycling' in words):
+											if ('cycling' in words):
 												ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 											else:
-												if ('Billiards' in words):
+												if ('billiards' in words):
 													ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 												else:
-													if ('BasketBall' in words):
+													if ('basketball' in words):
 														ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 													else:
-														if ('Athletics' in words):
+														if ('athletics' in words):
 															ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 														else:
-															if ('Boxing' in words):
+															if ('boxing' in words):
 																ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 															else:
-																if ('Cricket' in words):
+																if ('cricket' in words):
 																	ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 																else:
-																	if ('Fencing' in words): 
+																	if ('fencing' in words): 
 																		ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 																	else:
 																		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
@@ -237,7 +239,14 @@ def ProcessProgram(xml, program, guideName):
 		for word in words:
 			if (str(word).strip()):
 				ET.SubElement(xmlProgram, "category",lang="en").text = word.lower()
-
+	
+	if 'OriginalAirdate' in program:
+		#there is something funny w/ prev shown, this tries to address it.
+		#sometimes the prevshown is in the future, which kinda screws up things
+		#so if it's in the future I no longer add it.
+		if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
+			#The 86400 is because the HdHomeRun feed is off by a day, this fixes that.
+			ET.SubElement(xmlProgram, "previously-shown", start = datetime.fromtimestamp(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#Return the endtime so we know where to start from on next loop.
 	return program['EndTime']
