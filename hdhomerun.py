@@ -142,19 +142,10 @@ def ProcessProgram(xml, program, guideName):
 		
 		for filter in program['Filter']:
 			filterstringLower = str(filter).lower()
-			# print ("**************************************************************************")
-			# print ("**************************************************************************")
-			# print ("---------------------------------->" + filterstringLower + "<-------------")
-			# print ("**************************************************************************")
-			# print ("**************************************************************************")
-
 			#Does HdHomeRun think it is a movie?
-			#print (filterstringLower)
 			if ( filterstringLower == "movies"):
-				#print ("-----------------------------> HDHR THINKS IT A MOVIE!")
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
-					#print ("------------------------>Can't Find Movie: " + program['Title'])
 					#Have we added a fake episode yet?
 					if (addedEpisode == False):
 						#Ok, we will flag it as a series to get it out of movies
@@ -165,16 +156,13 @@ def ProcessProgram(xml, program, guideName):
 						addedEpisode = True
 					continue
 				else:
-					#print ("--------------------> found in IMDB")
 					#Does the Imdb say it's a movie?
 					if ( str(imdbData[1]).lower() == "movie" or str(imdbData[1]).lower() == "short"):
-						#print ("!!!!!!!!!!!!!! FOUND MOVIE  !!!!!!!!!!!!!!!!!!!!!")
 						#yes, ok, add the tag
 						ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
 						addedEpisode = True
 						continue
 					else:
-						#print("000000000000> IMDB SAYS " + str(imdbData[1]).lower())
 						#Set the type to what the IMDB says
 						ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[1]).lower()
 						#Have we added a fake episode yet?
@@ -187,9 +175,9 @@ def ProcessProgram(xml, program, guideName):
 				#ok, just add whatever the category is to the record.
 				ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
 
-	#print ("Checking Episode")
 	if ( addedEpisode == False ):
 		if (imdbData==0):
+			#Lets do a check for keywords in the Title and force a category if we get a match
 			words = str(program['Title']).split()
 			if 'News' in words :
 				ET.SubElement(xmlProgram, "category",lang="en").text = "news"
@@ -361,7 +349,6 @@ def GetHdConnectChannels(device_auth):
 	http = urllib3.PoolManager()
 	response = http.request('GET',"http://my.hdhomerun.com/api/guide.php?DeviceAuth=%s" % device_auth)
 	data = response.data
-	#WriteLog(data)
 	return json.loads(data)
 
 def GetHdConnectChannelPrograms(device_auth, guideNumber, timeStamp):
@@ -369,7 +356,6 @@ def GetHdConnectChannelPrograms(device_auth, guideNumber, timeStamp):
 	http = urllib3.PoolManager()
 	response = http.request('GET',"http://my.hdhomerun.com/api/guide.php?DeviceAuth=" + device_auth +"&Channel=" + guideNumber +"&Start=" + str(timeStamp) + "&SynopsisLength=160")
 	data = response.data
-	#WriteLog(data)
 	return json.loads(data)	
 
 def InList(l , value):
@@ -421,6 +407,7 @@ def WriteCacheDate():
 	with open ("cache/" + timeString + ".txt",'w') as logfile:
 		logfile.write("")
 
+#this function gets the character in the ordinal position and if it isn't a-z it returns _
 def getLetter(string,position):
 	word = str(string).lower()
 	letter = "_"
@@ -432,6 +419,8 @@ def getLetter(string,position):
 	
 	return letter
 	
+#This function writes one row from the IMDB to a cache file.
+# It builds it's cache file name by using the 1st, 4th and 6 character of the title.	
 def WriteDb(row):
 
 	if not os.path.exists("cache"):
@@ -447,10 +436,12 @@ def WriteDb(row):
 
 	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
 
+	#Write the file
 	with open (filename,'a',newline='\n') as tsvfile:
 		spamwriter = csv.writer(tsvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 		spamwriter.writerow(row)
-		
+
+#Deletes the cache files from the server		
 def dumpCache():
 	if os.path.exists("title.basics.tsv"):
   		os.remove("title.basics.tsv")	
@@ -465,6 +456,7 @@ def dumpCache():
 			print(e)
 
 def LoadImdb():
+	#Does the cache folder exist?  If not create it.
 	if not os.path.exists("cache"):
 		os.makedirs("cache")
 
@@ -472,15 +464,16 @@ def LoadImdb():
 	time_now = datetime.fromtimestamp(timestamp)
 	timeString = time_now.strftime('%Y%m')
 
-
+	#See if the data in the cache folder is for this month.
 	if os.path.exists("cache/" + timeString + ".txt"):
 		#We have already loaded the database for the day, no need to reload.
 		return
 
 	WriteLog("Dumping Cache")
-
+	#It isn't so lets dump all of the cache
 	dumpCache()
 
+	#Download the IMDB cst
 	chunk_size=1024
 	http = urllib3.PoolManager()
 	r = http.request('GET', "https://datasets.imdbws.com/title.basics.tsv.gz", preload_content=False)
@@ -492,21 +485,24 @@ def LoadImdb():
 	 			break
 	 		out.write(data)
 
+	#Decompress the file
 	with gzip.open('title.basics.tsv.gz', 'rb') as f_in:
 	 	with open('title.basics.tsv', 'wb') as f_out:
 	 		shutil.copyfileobj(f_in, f_out)		
 	
+	#Sort the file
 	with open('title.basics.tsv', encoding="utf8") as tsvfile:
 		reader = csv.reader(tsvfile, delimiter='\t')
 		for row in reader:
 			WriteDb(row)
-	
+	#Write the year and month the cache is valid for
 	WriteCacheDate()
 	
 
 
 def FindTitle(showTitle):
 	
+	#create Hash
 	L1 = getLetter( showTitle , 0 )
 	L2 = getLetter( showTitle , 3 )
 	L3 = getLetter( showTitle , 5 )
@@ -517,6 +513,7 @@ def FindTitle(showTitle):
 
 	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
 
+	#Open cache file if it exists and look for the title
 	if os.path.exists(filename):
 		with open(filename,  encoding = "ISO-8859-1") as tsvfile:
 			reader = csv.reader(tsvfile, delimiter='\t')
