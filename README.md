@@ -3,6 +3,9 @@
 
 This program downloads the programming for your connected HdHomeRun devices and converts it to a TVXML file which you can then use on Plex or any other Media Center.  To recieve more than 4 hours of programming you must subscribe to SiliconDust's DVR service which provides the extended EPG data that this program uses.
 
+**8/31/2018**
+I have successfully integrated the IMDb Dataset "title.basics.tsv.gz" into the engine to validate metadata.  This was to increase the accuracy of detecting movies and such.  With this change both the C# and Python first run of each month will take 30 - 45 minutes to run since it will download a new copy of the file from https://www.imdb.com/interfaces/.
+
 By default, the program will download **Two Weeks** of programming.
 
 **For Windows**
