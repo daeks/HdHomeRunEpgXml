@@ -415,6 +415,7 @@ def WriteCacheDate():
 	
 	with open ("cache/" + timeString + ".txt",'w') as logfile:
 		logfile.write("")
+	
 
 #this function gets the character in the ordinal position and if it isn't a-z it returns _
 def getLetter(string,position):
@@ -438,8 +439,7 @@ def WriteDb(row):
 	L1 = getLetter( row[2] , 0 )
 	L2 = getLetter( row[2] , 3 )
 	L3 = getLetter( row[2] , 5 )
-	#L4 = getLetter( row[2] , 3 )
-	L4 = "_"
+	L4 = getLetter( row[2] , 7 )
 	#L5 = getLetter( row[2] , 4 )
 	L5 = "_"
 
@@ -464,7 +464,7 @@ def dumpCache():
 		except Exception as e:
 			print(e)
 
-def LoadImdb():
+def CheckClear():
 	#Does the cache folder exist?  If not create it.
 	if not os.path.exists("cache"):
 		os.makedirs("cache")
@@ -474,9 +474,32 @@ def LoadImdb():
 	timeString = time_now.strftime('%Y%m')
 
 	#See if the data in the cache folder is for this month.
-	if os.path.exists("cache/" + timeString + ".txt"):
+	if os.path.exists("cache/clear" + timeString + ".txt"):
 		#We have already loaded the database for the day, no need to reload.
-		return
+		return True
+	return False
+
+def LoadImdb():
+
+
+
+
+	#Does the cache folder exist?  If not create it.
+	if not os.path.exists("cache"):
+		os.makedirs("cache")
+
+	timestamp = time.time()
+	time_now = datetime.fromtimestamp(timestamp)
+	timeString = time_now.strftime('%Y%m')
+
+	if os.path.exists("clear201808.txt"):
+		#See if the data in the cache folder is for this month.
+		if os.path.exists("cache/" + timeString + ".txt"):
+			#We have already loaded the database for the day, no need to reload.
+			return
+
+
+		
 
 	WriteLog("Dumping Cache")
 	#It isn't so lets dump all of the cache
@@ -506,33 +529,47 @@ def LoadImdb():
 			WriteDb(row)
 	#Write the year and month the cache is valid for
 	WriteCacheDate()
+	with open ("clear201808.txt",'w') as logfile:
+		logfile.write("")	
 	
 
 
 def FindTitle(showTitle):
-	
+	invalidChars =['!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/',' ','.','`',"'"]
 	#create Hash
 	L1 = getLetter( showTitle , 0 )
 	L2 = getLetter( showTitle , 3 )
 	L3 = getLetter( showTitle , 5 )
-	# L4 = getLetter( showTitle , 3 )
-	L4 = "_"
+	L4 = getLetter( showTitle , 7 )
 	# L5 = getLetter( showTitle , 4 )
 	L5 = "_"
 
 	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
+	newShowTitle = ""
+	for c in str(showTitle).lower():
+		if not InList(invalidChars,c):
+			newShowTitle = newShowTitle + c
 
 	#Open cache file if it exists and look for the title
 	if os.path.exists(filename):
 		with open(filename,  encoding = "ISO-8859-1") as tsvfile:
 			reader = csv.reader(tsvfile, delimiter='\t')
 			for row in reader:
-				if row[2] == showTitle or row[3]==showTitle:
+				
+				Title = ""
+				for c in str(row[2]).lower():
+					if not InList(invalidChars,c):
+						Title = Title + c
+
+				if Title == newShowTitle:
+					print("Found! " + Title + " == " + newShowTitle)
 					return row
 	return 0
 
 
 def main():
+
+
 
 	WriteLog("Starting...")
 

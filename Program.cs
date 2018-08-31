@@ -82,18 +82,36 @@ namespace HdHomeRunEpgXml
             Decompress(info);
         }
 
-        public static string[] FindTitle(string showTitle)
-        {
-            string L1 = getLetter(showTitle, 0);
-            string L2 = getLetter(showTitle, 3);
-            string L3 = getLetter(showTitle, 5);
+        public static List<char> InvalidChar=new List<char>(){'!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/'};
 
-            string filename = "cache/title.basics." + L1 + L2 + L3 + ".tsv";
+        public static string[] FindTitle(string rshowTitle)
+        {
+            
+
+            string L1 = getLetter(rshowTitle, 0);
+            string L2 = getLetter(rshowTitle, 3);
+            string L3 = getLetter(rshowTitle, 5);
+            string L4 = getLetter(rshowTitle, 7);
+
+            string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+
+            string filename = "cache/title.basics." + L1 + L2 + L3 + L4 + ".tsv";
             string data = File.ReadAllText(filename);
             var lines = data.Replace("\r", "").Split('\n');
-            return (from line in lines where !string.IsNullOrEmpty(line) select line.Split('\t')).FirstOrDefault(elements =>
-                elements[2].Equals(showTitle, StringComparison.InvariantCultureIgnoreCase) ||
-                elements[3].Equals(showTitle, StringComparison.CurrentCultureIgnoreCase));
+            foreach (string line in lines)
+            {
+                if (!string.IsNullOrEmpty(line))
+                {
+                    var elements = line.Split('\t');
+                    var title = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+                    var altTitle = elements[3].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+
+                    if (title.Equals(showTitle, StringComparison.InvariantCultureIgnoreCase) ||
+                        altTitle.Equals(showTitle, StringComparison.CurrentCultureIgnoreCase))
+                        return elements;
+                }
+            }
+            return new string[] { };
         }
 
         public static string getLetter(string word, int position)
@@ -143,7 +161,6 @@ namespace HdHomeRunEpgXml
                 ParseFile();
                 watch.Stop();
                 Console.WriteLine("Elapsed Time " + watch.Elapsed.Minutes);
-                Console.ReadLine();
             }
             else
             {
@@ -255,8 +272,9 @@ namespace HdHomeRunEpgXml
                 string L1 = getLetter(elements[2], 0);
                 string L2 = getLetter(elements[2], 3);
                 string L3 = getLetter(elements[2], 5);
+                string L4 = getLetter(elements[2], 7);
 
-                string filename = "cache/title.basics." + L1 + L2 + L3 + ".tsv";
+                string filename = "cache/title.basics." + L1 + L2 + L3 + L4 + ".tsv";
 
                 using (var writer = File.AppendText(filename))
                 {
@@ -266,6 +284,9 @@ namespace HdHomeRunEpgXml
                 counter++;
                 if (counter % 10000.00 == 0)
                     Console.WriteLine("Loaded " + counter + " rows so far.");
+
+                string tsfilename ="cache/" + DateTime.Now.ToString("yyyyMM") + ".txt";
+                File.WriteAllText(tsfilename,"");
             }
         }
     }
