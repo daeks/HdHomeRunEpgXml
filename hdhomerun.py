@@ -230,7 +230,7 @@ def ProcessProgram(xml, program, guideName):
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
 		else:
-			ET.SubElement(xmlProgram, "category",lang="en").text = imdbData[1]
+			ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[1]).lower()
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
 	

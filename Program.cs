@@ -25,6 +25,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
 using System.Xml;
 using HdHomeRunEpgXml.Data;
 using HdHomeRunEpgXml.Util;
@@ -33,10 +38,79 @@ namespace HdHomeRunEpgXml
 {
     internal class Program
     {
+        public static bool CheckCacheTimeStamp()
+        {
+            string timestring = DateTime.Now.ToString("yyyyMM") + ".txt";
+
+            return Directory.Exists("cache") && File.Exists("cache/" + timestring);
+        }
+
+        public static void Decompress(FileInfo fileToDecompress)
+        {
+            using (var originalFileStream = fileToDecompress.OpenRead())
+            {
+                string currentFileName = fileToDecompress.FullName;
+                string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+                using (var decompressedFileStream = File.Create(newFileName))
+                {
+                    using (var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                    {
+                        decompressionStream.CopyTo(decompressedFileStream);
+                        Console.WriteLine("Decompressed: {0}", fileToDecompress.Name);
+                    }
+                }
+            }
+        }
+
+        public static void DownloadImdb()
+        {
+            if (!Directory.Exists("cache"))
+                Directory.CreateDirectory("cache");
+
+            if (File.Exists("title.basics.tsv.gz"))
+                File.Delete("title.basics.tsv.gz");
+
+            if (File.Exists("title.basics.tsv"))
+                File.Delete("title.basics.tsv");
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile("https://datasets.imdbws.com/title.basics.tsv.gz", "title.basics.tsv.gz");
+            }
+            var info = new FileInfo("title.basics.tsv.gz");
+            Decompress(info);
+        }
+
+        public static string[] FindTitle(string showTitle)
+        {
+            string L1 = getLetter(showTitle, 0);
+            string L2 = getLetter(showTitle, 3);
+            string L3 = getLetter(showTitle, 5);
+
+            string filename = "cache/title.basics." + L1 + L2 + L3 + ".tsv";
+            string data = File.ReadAllText(filename);
+            var lines = data.Replace("\r", "").Split('\n');
+            return (from line in lines where !string.IsNullOrEmpty(line) select line.Split('\t')).FirstOrDefault(elements =>
+                elements[2].Equals(showTitle, StringComparison.InvariantCultureIgnoreCase) ||
+                elements[3].Equals(showTitle, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        public static string getLetter(string word, int position)
+        {
+            word = word.ToLower();
+            char letter = '_';
+            if (word.Length > position)
+                letter = word[position];
+
+            if (!char.IsLetter(letter) && !char.IsNumber(letter))
+                letter = '_';
+            return letter.ToString();
+        }
+
         private static void Main(string[] args)
         {
             if (args.Length > 0)
-            {
                 if (args[0] == "?")
                 {
                     Console.WriteLine("Argument expected: XML File Path.");
@@ -47,7 +121,6 @@ namespace HdHomeRunEpgXml
                     Console.WriteLine("You can also specify the device.");
                     Console.WriteLine("         HdHomeRunEpgXml " + '"' + "C:\\hdEpg.xml" + '"' + " <DeviceID>");
                 }
-            }
             if (args.Length == 0)
             {
                 Console.WriteLine("Argument expected: XML File Path.");
@@ -60,11 +133,26 @@ namespace HdHomeRunEpgXml
                 return;
             }
 
+            if (!CheckCacheTimeStamp())
+            {
+                var watch = new Stopwatch();
+                watch.Start();
+                Console.WriteLine("Downloading IMDB Database.");
+                DownloadImdb();
+                Console.WriteLine("Parsing IMDB database, this can take a while...");
+                ParseFile();
+                watch.Stop();
+                Console.WriteLine("Elapsed Time " + watch.Elapsed.Minutes);
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine("Using cache.");
+            }
+
             string selectedDevice = null;
             if (args.Length == 2)
-            {
                 selectedDevice = args[1];
-            }
 
             IpAddressFinder.PrintLocalIPAddress();
 
@@ -145,6 +233,40 @@ namespace HdHomeRunEpgXml
 
             Console.WriteLine("Finished.");
             Console.WriteLine("Epg file saved to: " + args[0]);
+        }
+
+        public static void ParseFile()
+        {
+            if (Directory.Exists("cache"))
+                Directory.Delete("cache", true);
+
+            Directory.CreateDirectory("cache");
+
+            string line;
+            long counter = 0;
+            var file = new StreamReader(@"title.basics.tsv");
+            while ((line = file.ReadLine()) != null)
+            {
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                var elements = line.Split('\t');
+
+                string L1 = getLetter(elements[2], 0);
+                string L2 = getLetter(elements[2], 3);
+                string L3 = getLetter(elements[2], 5);
+
+                string filename = "cache/title.basics." + L1 + L2 + L3 + ".tsv";
+
+                using (var writer = File.AppendText(filename))
+                {
+                    writer.WriteLine(line);
+                    writer.Flush();
+                }
+                counter++;
+                if (counter % 10000.00 == 0)
+                    Console.WriteLine("Loaded " + counter + " rows so far.");
+            }
         }
     }
 }
