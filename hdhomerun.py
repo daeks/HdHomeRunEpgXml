@@ -497,7 +497,8 @@ def LoadImdb():
 		if os.path.exists("cache/" + timeString + ".txt"):
 			#We have already loaded the database for the day, no need to reload.
 			return
-
+	else:
+		WriteLog("Forced Cache Dump")
 
 		
 
