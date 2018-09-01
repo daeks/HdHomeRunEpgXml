@@ -47,19 +47,20 @@ namespace HdHomeRunEpgXml.Util
             return eleTitle;
         }
 
-        public static string DateTimeToEpisode()
+        public static string DateTimeToEpisode(int startDt)
         {
-            var dt = DateTime.Now;
+
+            var dt = Time.UnixTimeStampToDateTime(startDt);
             string season = dt.ToString("yyyy");
-            string episode = dt.ToString("MMddhhmmss");
+            string episode = dt.ToString("MMddhhmm");
             return season + " . " + episode + " . 0/1";
         }
 
-        public static string DatetimeToEpisodeFriendly()
+        public static string DatetimeToEpisodeFriendly(int startDt)
         {
-            var dt = DateTime.Now;
+            var dt = Time.UnixTimeStampToDateTime(startDt);
             string season = dt.ToString("yyyy");
-            string episode = dt.ToString("MMddhhmmss");
+            string episode = dt.ToString("MMddhhmm");
             return "S" + season + "E" + episode;
         }
 
@@ -135,8 +136,8 @@ namespace HdHomeRunEpgXml.Util
                             if (addedEpisode == false)
                             {
                                 eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(), "system", "onscreen"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(), "system", "xmltv_ns"));
+                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
+                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
                                 addedEpisode = true;
                             }
                         }
@@ -156,8 +157,8 @@ namespace HdHomeRunEpgXml.Util
                                 eleProgram.AppendChild(CreateElement(doc, "category", imdbData[1].ToLower()));
                                 // Have we added a fake episode yet?
                                 eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(), "system", "onscreen"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(), "system", "xmltv_ns"));
+                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
+                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
                                 addedEpisode = true;
                             }
                         }
@@ -239,14 +240,14 @@ namespace HdHomeRunEpgXml.Util
                     {
                         eleProgram.AppendChild(CreateElement(doc, "category", "series"));
                     }
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(), "system", "onscreen"));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(), "system", "xmltv_ns"));
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
                 }
                 else
                 {
                     eleProgram.AppendChild(CreateElement(doc, "category", imdbData[1].ToLower()));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(), "system", "onscreen"));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(), "system", "xmltv_ns"));
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
                 }
 
             if (imdbData != null)
