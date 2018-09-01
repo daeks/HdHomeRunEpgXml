@@ -109,16 +109,9 @@ namespace HdHomeRunEpgXml
             if (lineNumber == -1)
                 return null;
 
-            int counter = 0;
-            string line;
-            var file = new StreamReader(@"title.basics.tsv");
-            while ((line = file.ReadLine()) != null)
-            {
-                counter = counter + 1;
-                if (counter != lineNumber)
-                    continue;
+            string line = File.ReadLines(@"title.basics.tsv").ElementAt(lineNumber);
+            if(line.Length > 0)
                 return line.Split('\t');
-            }
 
             return null;
         }
