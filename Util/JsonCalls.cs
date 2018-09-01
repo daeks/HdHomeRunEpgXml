@@ -73,6 +73,15 @@ namespace HdHomeRunEpgXml.Util
             }
         }
 
+        public static List<HdConnectLineup> GetHdConnectLineUp(this HdConnectDiscover discover)
+        {
+            var uri = new Uri(discover.LineupURL);
+            var hc = new HttpClient();
+            var result = hc.GetByteArrayAsync(uri).Result;
+            string json = Encoding.UTF8.GetString(result);
+            return JsonConvert.DeserializeObject<List<HdConnectLineup>>(json);
+        }
+
         public static HdConnectDiscover GetHdConnectDiscover(this HdConnectDevice device)
         {
             var uri = new Uri(device.DiscoverURL);

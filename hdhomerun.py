@@ -39,6 +39,13 @@ from datetime import datetime
 from xml.dom import minidom
 from pprint import pprint
 
+
+TitleIndex = {}
+invalidChars =['!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/',' ','.','`',"'"]
+
+
+
+
 def get_utc_offset_str():
     """
     Returns a UTC offset string of the current time suitable for use in the
@@ -149,25 +156,25 @@ def ProcessProgram(xml, program, guideName):
 						#Ok, we will flag it as a series to get it out of movies
 						ET.SubElement(xmlProgram, "category",lang="en").text = "series"
 						#Add fake series/episode info
-						ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
-						ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+						ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+						ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 						addedEpisode = True
 					continue
 				else:
 					#Does the Imdb say it's a movie?
-					if ( str(imdbData[1]).lower() == "movie" or str(imdbData[1]).lower() == "short"):
+					if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
 						#yes, ok, add the tag
 						ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
 						addedEpisode = True
 						continue
 					else:
 						#Set the type to what the IMDB says
-						ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[1]).lower()
+						ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
 						#Have we added a fake episode yet?
 						if (addedEpisode == False):
 							ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-							ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
-							ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+							ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+							ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 							addedEpisode = True
 			else:
 				#ok, just add whatever the category is to the record.
@@ -227,17 +234,17 @@ def ProcessProgram(xml, program, guideName):
 																		ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
 																	else:
 																		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 		else:
-			ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[1]).lower()
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode()
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly()
+			ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 	
 	if (imdbData != 0):
-		words = str(imdbData[8]).split(',')
+		words = str(imdbData[1]).split(',')
 		for word in words:
-			if (str(word).strip()):
+			if (str(word).strip() and not str(word).strip() == "\\N"):
 				ET.SubElement(xmlProgram, "category",lang="en").text = word.lower()
 	
 	if 'OriginalAirdate' in program:
@@ -382,18 +389,16 @@ def ClearLog():
 		  		  
 	
 
-def DateTimeToEpisode():
-	timestamp = time.time()
-	time_now = datetime.fromtimestamp(timestamp)
+def DateTimeToEpisode(startDt):
+	time_now = datetime.fromtimestamp(startDt)
 	season = time_now.strftime('%Y')
-	episode = time_now.strftime('%m%d%H')
+	episode = time_now.strftime('%m%d%H%M')
 	return (season + " . " + episode  + " . 0/1")
 
-def DateTimeToEpisodeFriendly():
-	timestamp = time.time()
-	time_now = datetime.fromtimestamp(timestamp)
+def DateTimeToEpisodeFriendly(startDt):
+	time_now = datetime.fromtimestamp(startDt)
 	season = time_now.strftime('%Y')
-	episode = time_now.strftime('%m%d%H')
+	episode = time_now.strftime('%m%d%H%M')
 	return ("S" + season + "E" + episode)
 
 def WriteLog(message):
@@ -406,16 +411,6 @@ def WriteLog(message):
 		logfile.write(output )
 	print(output.encode('utf-8'))
 
-def WriteCacheDate():
-	if not os.path.exists("cache"):
-		os.makedirs("cache")
-	timestamp = time.time()
-	time_now = datetime.fromtimestamp(timestamp)
-	timeString = time_now.strftime('%Y%m')
-	
-	with open ("cache/" + timeString + ".txt",'w') as logfile:
-		logfile.write("")
-	
 
 #this function gets the character in the ordinal position and if it isn't a-z it returns _
 def getLetter(string,position):
@@ -429,26 +424,6 @@ def getLetter(string,position):
 	
 	return letter
 	
-#This function writes one row from the IMDB to a cache file.
-# It builds it's cache file name by using the 1st, 4th and 6 character of the title.	
-def WriteDb(row):
-
-	if not os.path.exists("cache"):
-		os.makedirs("cache")
-
-	L1 = getLetter( row[2] , 0 )
-	L2 = getLetter( row[2] , 3 )
-	L3 = getLetter( row[2] , 5 )
-	L4 = getLetter( row[2] , 7 )
-	#L5 = getLetter( row[2] , 4 )
-	L5 = "_"
-
-	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
-
-	#Write the file
-	with open (filename,'a',newline='\n') as tsvfile:
-		spamwriter = csv.writer(tsvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-		spamwriter.writerow(row)
 
 #Deletes the cache files from the server		
 def dumpCache():
@@ -456,52 +431,17 @@ def dumpCache():
   		os.remove("title.basics.tsv")	
 	if os.path.exists("title.basics.tsv.gz"):
   		os.remove("title.basics.tsv.gz")	
-	for the_file in os.listdir("cache"):
-		file_path = os.path.join("cache", the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-		except Exception as e:
-			print(e)
-
-def CheckClear():
-	#Does the cache folder exist?  If not create it.
-	if not os.path.exists("cache"):
-		os.makedirs("cache")
-
-	timestamp = time.time()
-	time_now = datetime.fromtimestamp(timestamp)
-	timeString = time_now.strftime('%Y%m')
-
-	#See if the data in the cache folder is for this month.
-	if os.path.exists("cache/clear" + timeString + ".txt"):
-		#We have already loaded the database for the day, no need to reload.
-		return True
-	return False
+	
+	if os.path.exists("cache"):			  
+		for the_file in os.listdir("cache"):
+			file_path = os.path.join("cache", the_file)
+			try:
+				if os.path.isfile(file_path):
+					os.unlink(file_path)
+			except Exception as e:
+				print(e)
 
 def LoadImdb():
-
-
-
-
-	#Does the cache folder exist?  If not create it.
-	if not os.path.exists("cache"):
-		os.makedirs("cache")
-
-	timestamp = time.time()
-	time_now = datetime.fromtimestamp(timestamp)
-	timeString = time_now.strftime('%Y%m')
-
-	if os.path.exists("clear201808.txt"):
-		#See if the data in the cache folder is for this month.
-		if os.path.exists("cache/" + timeString + ".txt"):
-			#We have already loaded the database for the day, no need to reload.
-			return
-	else:
-		WriteLog("Forced Cache Dump")
-
-		
-
 	WriteLog("Dumping Cache")
 	#It isn't so lets dump all of the cache
 	dumpCache()
@@ -523,55 +463,40 @@ def LoadImdb():
 	 	with open('title.basics.tsv', 'wb') as f_out:
 	 		shutil.copyfileobj(f_in, f_out)		
 	
-	#Sort the file
-	with open('title.basics.tsv', encoding="utf8") as tsvfile:
-		reader = csv.reader(tsvfile, delimiter='\t')
-		for row in reader:
-			WriteDb(row)
-	#Write the year and month the cache is valid for
-	WriteCacheDate()
-	with open ("clear201808.txt",'w') as logfile:
-		logfile.write("")	
 	
+	counter = 0
+	with open('title.basics.tsv', encoding="utf8") as tsvfile:	
+		reader =  csv.DictReader(tsvfile, delimiter='\t')
+		for row in reader:
+			counter = counter + 1
+			ShowTitle = ''.join( c for c in  str(row["primaryTitle"]).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" )
+			MovieList[ShowTitle] = [ row["titleType"], row["genres"] ]
+			if ((counter % 10000)==0):
+				print ("Indexed " + str(counter) + " movies.")
+
+	print ("Finished indexing movies.")
+
+
 
 
 def FindTitle(showTitle):
-	invalidChars =['!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/',' ','.','`',"'"]
-	#create Hash
-	L1 = getLetter( showTitle , 0 )
-	L2 = getLetter( showTitle , 3 )
-	L3 = getLetter( showTitle , 5 )
-	L4 = getLetter( showTitle , 7 )
-	# L5 = getLetter( showTitle , 4 )
-	L5 = "_"
-
-	filename = "cache/title.basics." + L1 + L2 + L3 + L4 + L5 + ".tsv"
-	newShowTitle = ""
-	for c in str(showTitle).lower():
-		if not InList(invalidChars,c):
-			newShowTitle = newShowTitle + c
-
-	#Open cache file if it exists and look for the title
-	if os.path.exists(filename):
-		with open(filename,  encoding = "ISO-8859-1") as tsvfile:
-			reader = csv.reader(tsvfile, delimiter='\t')
-			for row in reader:
-				
-				Title = ""
-				for c in str(row[2]).lower():
-					if not InList(invalidChars,c):
-						Title = Title + c
-
-				if Title == newShowTitle:
-					print("Found! " + Title + " == " + newShowTitle)
-					return row
+	#print ("Looking for: " + showTitle)
+	newShowTitle = ''.join( c for c in  str(showTitle).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" 	)
+	if (newShowTitle in MovieList):
+		#print(MovieList[newShowTitle])
+		return MovieList[newShowTitle]
 	return 0
 
+MovieList = {}
+
+def printIt(reader):
+	for row in reader:
+		return row
 
 def main():
 
 
-
+			
 	WriteLog("Starting...")
 
 	WriteLog("Clearing log files...")
@@ -579,6 +504,7 @@ def main():
 	ClearLog()
 	
 	WriteLog("Downloading the IMDB databases and sorting it, this takes 30 minutes.")
+	
 	LoadImdb()
 	
 	xml = ET.Element("tv")
