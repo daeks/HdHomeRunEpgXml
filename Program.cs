@@ -63,11 +63,10 @@ namespace HdHomeRunEpgXml
             }
         }
 
+        public static Dictionary<string, int> TitleIndex = new Dictionary<string, int>();
+
         public static void DownloadImdb()
         {
-            if (!Directory.Exists("cache"))
-                Directory.CreateDirectory("cache");
-
             if (File.Exists("title.basics.tsv.gz"))
                 File.Delete("title.basics.tsv.gz");
 
@@ -78,52 +77,50 @@ namespace HdHomeRunEpgXml
             {
                 client.DownloadFile("https://datasets.imdbws.com/title.basics.tsv.gz", "title.basics.tsv.gz");
             }
+
             var info = new FileInfo("title.basics.tsv.gz");
+            
             Decompress(info);
+            string line;
+            int counter = 0;
+            var file = new StreamReader(@"title.basics.tsv");
+            while ((line = file.ReadLine()) != null)
+            {
+                counter = counter + 1;
+                if (string.IsNullOrEmpty(line))
+                    continue;
+                var elements = line.Split('\t');
+                string key = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+                if (TitleIndex.ContainsKey(key))
+                    continue;
+                TitleIndex.Add(key,counter);
+            }
         }
 
-        public static List<char> InvalidChar=new List<char>(){'!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/'};
+        public static List<char> InvalidChar = new List<char>() { '!', '@', '#', '$', '%', '^', '&', '&', '*', '(', '(', ')', '_', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', ',', '>', '>', '?', '/' };
 
         public static string[] FindTitle(string rshowTitle)
         {
-            
-
-            string L1 = getLetter(rshowTitle, 0);
-            string L2 = getLetter(rshowTitle, 3);
-            string L3 = getLetter(rshowTitle, 5);
-            string L4 = getLetter(rshowTitle, 7);
-
             string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+            int lineNumber = -1;
+            if (TitleIndex.ContainsKey(showTitle))
+                lineNumber = TitleIndex[showTitle];
 
-            string filename = "cache/title.basics." + L1 + L2 + L3 + L4 + ".tsv";
-            string data = File.ReadAllText(filename);
-            var lines = data.Replace("\r", "").Split('\n');
-            foreach (string line in lines)
+            if (lineNumber == -1)
+                return null;
+
+            int counter = 0;
+            string line;
+            var file = new StreamReader(@"title.basics.tsv");
+            while ((line = file.ReadLine()) != null)
             {
-                if (!string.IsNullOrEmpty(line))
-                {
-                    var elements = line.Split('\t');
-                    var title = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
-                    var altTitle = elements[3].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
-
-                    if (title.Equals(showTitle, StringComparison.InvariantCultureIgnoreCase) ||
-                        altTitle.Equals(showTitle, StringComparison.CurrentCultureIgnoreCase))
-                        return elements;
-                }
+                counter = counter + 1;
+                if (counter != lineNumber)
+                    continue;
+                return line.Split('\t');
             }
-            return new string[] { };
-        }
 
-        public static string getLetter(string word, int position)
-        {
-            word = word.ToLower();
-            char letter = '_';
-            if (word.Length > position)
-                letter = word[position];
-
-            if (!char.IsLetter(letter) && !char.IsNumber(letter))
-                letter = '_';
-            return letter.ToString();
+            return null;
         }
 
         private static void Main(string[] args)
@@ -151,21 +148,8 @@ namespace HdHomeRunEpgXml
                 return;
             }
 
-            if (!CheckCacheTimeStamp())
-            {
-                var watch = new Stopwatch();
-                watch.Start();
-                Console.WriteLine("Downloading IMDB Database.");
-                DownloadImdb();
-                Console.WriteLine("Parsing IMDB database, this can take a while...");
-                ParseFile();
-                watch.Stop();
-                Console.WriteLine("Elapsed Time " + watch.Elapsed.Minutes);
-            }
-            else
-            {
-                Console.WriteLine("Using cache.");
-            }
+            DownloadImdb();
+
 
             string selectedDevice = null;
             if (args.Length == 2)
@@ -252,42 +236,6 @@ namespace HdHomeRunEpgXml
             Console.WriteLine("Epg file saved to: " + args[0]);
         }
 
-        public static void ParseFile()
-        {
-            if (Directory.Exists("cache"))
-                Directory.Delete("cache", true);
-
-            Directory.CreateDirectory("cache");
-
-            string line;
-            long counter = 0;
-            var file = new StreamReader(@"title.basics.tsv");
-            while ((line = file.ReadLine()) != null)
-            {
-                if (string.IsNullOrEmpty(line))
-                    continue;
-
-                var elements = line.Split('\t');
-
-                string L1 = getLetter(elements[2], 0);
-                string L2 = getLetter(elements[2], 3);
-                string L3 = getLetter(elements[2], 5);
-                string L4 = getLetter(elements[2], 7);
-
-                string filename = "cache/title.basics." + L1 + L2 + L3 + L4 + ".tsv";
-
-                using (var writer = File.AppendText(filename))
-                {
-                    writer.WriteLine(line);
-                    writer.Flush();
-                }
-                counter++;
-                if (counter % 10000.00 == 0)
-                    Console.WriteLine("Loaded " + counter + " rows so far.");
-
-                string tsfilename ="cache/" + DateTime.Now.ToString("yyyyMM") + ".txt";
-                File.WriteAllText(tsfilename,"");
-            }
-        }
+   
     }
 }
