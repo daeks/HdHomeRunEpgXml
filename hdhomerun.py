@@ -225,7 +225,9 @@ def ProcessProgram(xml, program, guideName):
 		if (filter == "movie" or filter == "movies"):
 			print ("-------------------------->Found MOVIE")
 			FoundMovie = True
-			ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
+
+	if FoundMovie:
+		ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
 
 
 	for xfilter in FiltersToAdd:
