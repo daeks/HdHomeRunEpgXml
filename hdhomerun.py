@@ -145,7 +145,8 @@ def ProcessProgram(xml, program, guideName):
 
 	if (not imdbData == 0):
 
-		FiltersToAdd.append(str(imdbData[0]))				
+		FiltersToAdd.append(str(imdbData[0]))		
+
 		words = str(imdbData[1]).lower().split(',')
 		for word in words:
 			if (str(word).strip() and not str(word).strip() == "\\N"):
@@ -167,12 +168,15 @@ def ProcessProgram(xml, program, guideName):
 
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies"):
+				print ("----------------------  MOVIE TAG IN HdHomeRun FILTER")
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
 					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
 					FiltersToAdd.append("movie")
 					continue
+				else:
+					FiltersToAdd.append(str(imdbData[0]))
 			else:
 				#ok, just add whatever the category is to the record.
 				FiltersToAdd.append(filterstringLower)
@@ -285,7 +289,7 @@ def processChannel(xml, data, deviceAuth):
 	#The first pull is for 4 hours, each of these are 8 hours
 	#So if we do this 21 times we will have fetched the complete week
 	try:
-		while ( counter < 2 ):
+		while ( counter < 42 ):
 			chanData = GetHdConnectChannelPrograms( deviceAuth, data.get('GuideNumber'), maxTime)
 			for chan in chanData:
 				for program in chan["Guide"]:
