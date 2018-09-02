@@ -162,7 +162,7 @@ def ProcessProgram(xml, program, guideName):
 				if ( imdbData == 0 ):
 					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
-					if (not "movie" in FiltersToAdd)
+					if (not "movie" in FiltersToAdd):
 						FiltersToAdd.append("movie")
 					continue
 
