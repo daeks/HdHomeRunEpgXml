@@ -1,7 +1,7 @@
 # HdHomeRunEpgXml #
 # This program is provided with no warrenty and is for educational purposes only. #
 
-This program downloads the programming for your connected HdHomeRun devices and converts it to a TVXML file which you can then use on Plex or any other Media Center.  To recieve more than 4 hours of programming you must subscribe to SiliconDust's DVR service which provides the extended EPG data that this program uses.
+This program downloads the programming for your connected HdHomeRun devices and converts it to a TVXML file which you can then use on Plex or any other Media Center.  To recieve more than 4 hours of programming you must subscribe to either SiliconDust's DVR service  or  the Premium Tv Package which provides the extended EPG data that this program uses.
 
 **9/02/2018**
 We have enhanced both the Python and C# application significantly.  We now have a very accuract EPG thanks to the efforts of all those who have contributed there work to the project.  I personally want to thank everyone for their time developing and testing the scripts.
