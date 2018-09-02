@@ -82,7 +82,7 @@ def get_utc_offset_str():
 
     return utc_offset_str
 
-def ProcessProgram(xml, program, guideName):
+def ProcessProgram(xml, program, guideName, HighDef):
 
 	WriteLog ("Processing Show: " + program['Title'])
 
@@ -101,6 +101,8 @@ def ProcessProgram(xml, program, guideName):
 	#Title
 	ET.SubElement(xmlProgram, "title", lang="en").text = program['Title']
 
+	if (HighDef):
+		ET.SubElement(xmlProgram, "video", quality="HDTV")
 		
 	#Sub Title
 	if 'EpisodeTitle' in program:
@@ -141,6 +143,17 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
 	imdbData =  FindTitle(program['Title'])
 	
+	# if (not imdbData == 0):
+	# 	xmlCredits = ET.SubElement(xmlProgram, "credits")
+	# 	key = imdbData[2]
+
+	# 	if (key in DirectorWriterList):
+	# 		people = str(DirectorWriterList[key]).split(';')
+	# 		for name in people:
+	# 			if (not name.strip()):
+	# 				ET.SubElement( xmlCredits, "director").text = name
+			
+
 	if 'Filter' in program:
 		# print ("Has Filters!")
 		# print (program['Filter'])
@@ -259,7 +272,7 @@ def ProcessProgram(xml, program, guideName):
 	return program['EndTime']
 
 	
-def processChannel(xml, data, deviceAuth):
+def processChannel(xml, data, deviceAuth, HighDef):
 	
 	WriteLog ("Processing Channel: " + data.get('GuideNumber') + " " + data.get('GuideName'))
 
@@ -283,7 +296,7 @@ def processChannel(xml, data, deviceAuth):
 	maxTime = 0
 		
 	for program in data.get("Guide"):
-		maxTime = ProcessProgram(xml,program, data.get('GuideName'))
+		maxTime = ProcessProgram(xml,program, data.get('GuideName'),HighDef)
 		
 	maxTime = maxTime + 1
 	counter = 0
@@ -295,7 +308,7 @@ def processChannel(xml, data, deviceAuth):
 			chanData = GetHdConnectChannelPrograms( deviceAuth, data.get('GuideNumber'), maxTime)
 			for chan in chanData:
 				for program in chan["Guide"]:
-					maxTime = ProcessProgram( xml, program, data.get('GuideName'))
+					maxTime = ProcessProgram( xml, program, data.get('GuideName'),HighDef)
 			counter = counter + 1
 
 	except:
@@ -446,6 +459,9 @@ def LoadImdb():
 	#It isn't so lets dump all of the cache
 	dumpCache()
 
+
+	WriteLog("Downloading IMDB File: title.basics.tsv.gz")
+	##################################################################################
 	#Download the IMDB cst
 	chunk_size=1024
 	http = urllib3.PoolManager()
@@ -458,21 +474,105 @@ def LoadImdb():
 	 			break
 	 		out.write(data)
 
+	WriteLog("Decompressing IMDB File: title.basics.tsv.gz")
 	#Decompress the file
 	with gzip.open('title.basics.tsv.gz', 'rb') as f_in:
 	 	with open('title.basics.tsv', 'wb') as f_out:
 	 		shutil.copyfileobj(f_in, f_out)		
-	
-	
+	##################################################################################
 	counter = 0
 	with open('title.basics.tsv', encoding="utf8") as tsvfile:	
 		reader =  csv.DictReader(tsvfile, delimiter='\t')
 		for row in reader:
+			#print (row)
 			counter = counter + 1
 			ShowTitle = ''.join( c for c in  str(row["primaryTitle"]).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" )
-			MovieList[ShowTitle] = [ row["titleType"], row["genres"] ]
+			MovieList[ShowTitle] = [ row["titleType"], row["genres"], row["tconst"] ]
 			if ((counter % 10000)==0):
 				print ("Indexed " + str(counter) + " movies.")
+
+	#################################################################################
+	# ##################################################################################
+	# #Download the IMDB cst
+	# WriteLog("Downloading IMDB File: name.basics.tsv.gz")
+	# chunk_size=1024
+	# http = urllib3.PoolManager()
+	# r = http.request('GET', "https://datasets.imdbws.com/name.basics.tsv.gz", preload_content=False)
+
+	# with open("name.basics.tsv.gz", 'wb') as out:
+	# 	while True:
+	#  		data = r.read(chunk_size)
+	#  		if not data:
+	#  			break
+	#  		out.write(data)
+
+	# #Decompress the file
+	# with gzip.open('name.basics.tsv.gz', 'rb') as f_in:
+	#  	with open('name.basics.tsv', 'wb') as f_out:
+	#  		shutil.copyfileobj(f_in, f_out)		
+	# ##################################################################################
+	# WriteLog("Decompressing IMDB File: name.basics.tsv.gz")
+	# counter = 0
+	# with open('name.basics.tsv', encoding="utf8") as tsvfile:	
+	# 	reader =  csv.DictReader(tsvfile, delimiter='\t')
+	# 	for row in reader:
+	# 		#print (row)
+	# 		counter = counter + 1
+	# 		NameList[row["nconst"]] = row["primaryName"]
+	# 		if ((counter % 10000)==0):
+	# 			print ("Indexed " + str(counter) + " names.")
+
+	# ##################################################################################
+	# ##################################################################################
+	# #Download the IMDB cst
+	# WriteLog("Downloading IMDB File: title.crew.tsv.gz")
+	# chunk_size=1024
+	# http = urllib3.PoolManager()
+	# r = http.request('GET', "https://datasets.imdbws.com/title.crew.tsv.gz", preload_content=False)
+
+	# with open("title.crew.tsv.gz", 'wb') as out:
+	# 	while True:
+	#  		data = r.read(chunk_size)
+	#  		if not data:
+	#  			break
+	#  		out.write(data)
+
+	# WriteLog("Decompressing IMDB File: title.crew.tsv.gz")
+	# #Decompress the file
+	# with gzip.open('title.crew.tsv.gz', 'rb') as f_in:
+	#  	with open('title.crew.tsv', 'wb') as f_out:
+	#  		shutil.copyfileobj(f_in, f_out)		
+	# ##################################################################################
+	# counter = 0
+	# with open('title.crew.tsv', encoding="utf8") as tsvfile:	
+	# 	reader =  csv.DictReader(tsvfile, delimiter='\t')
+	# 	for row in reader:
+	# 		#print (row)
+			
+
+	# 		NameString = ""
+
+	# 		directors = str(row["directors"]).split(',')
+	# 		for director in directors:
+	# 			if (director in NameList):
+	# 				NameString = NameString + ";" + NameList[director]
+					
+
+			
+	# 		writers = str(row["writers"]).split(',')
+	# 		for writer in writers:
+	# 			if (writer in NameList):
+	# 				NameString = NameString + ";" + NameList[writer]
+			
+	# 		key = str(row["tconst"])
+
+	# 		DirectorWriterList[key] = NameString
+
+			 
+
+	# 		counter = counter + 1
+	# 		if ((counter % 10000)==0):
+	# 			print ("Lines Indexed " + str(counter) + " Directors and Writers.")
 
 	print ("Finished indexing movies.")
 
@@ -488,6 +588,8 @@ def FindTitle(showTitle):
 	return 0
 
 MovieList = {}
+NameList = {}
+DirectorWriterList = {}
 
 def printIt(reader):
 	for row in reader:
@@ -530,14 +632,31 @@ def main():
 			LineUp = GetHdConnectLineUp(lineUpUrl)
 
 			if ( len(LineUp) > 0):
+
+
+				
 				WriteLog("Line Up Exists for device")
+
 				channels = GetHdConnectChannels(deviceAuth)
+
+				HighDef = False
+
 				for chan in channels:
+
+					for lu in LineUp:
+						if (lu["GuideNumber"] == chan["GuideNumber"]):
+							if ("HD" in lu):
+								if (lu["HD"] == 1):
+										HighDef = True
+
+							break
+
 					ch =str( chan.get('GuideName') )
+
 					if (InList( processedChannelList, ch) == False):
 						WriteLog ("Processing Channel: " + ch)
 						processedChannelList.append(ch)
-						processChannel( xml, chan, deviceAuth)
+						processChannel( xml, chan, deviceAuth,HighDef)
 					else:
 						WriteLog ("Skipping Channel " + ch + ", already processed.")
 			else:

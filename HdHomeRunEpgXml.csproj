@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="Data\HdConnectDevice.cs" />
     <Compile Include="Data\HdConnectDiscover.cs" />
+    <Compile Include="Data\HdConnectLineup.cs" />
     <Compile Include="Data\HdConnectProgram.cs" />
     <Compile Include="Data\HdConnectChannel.cs" />
     <Compile Include="Data\ImdbRw.cs" />

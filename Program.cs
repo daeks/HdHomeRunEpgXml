@@ -174,6 +174,9 @@ namespace HdHomeRunEpgXml
                 Console.ReadLine();
                 Environment.Exit(0);
             }
+
+
+
             if (devices == null)
                 Console.WriteLine("Devices are null!  Can't find recievers.");
             else
