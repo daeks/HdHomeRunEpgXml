@@ -162,8 +162,9 @@ def ProcessProgram(xml, program, guideName):
 				#if ( imdbData == 0 ):
 					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
-				if (not "movie" in FiltersToAdd):
-					FiltersToAdd.append("movie")
+				if not 'EpisodeNumber' in program:
+					if (not "movie" in FiltersToAdd):
+						FiltersToAdd.append("movie")
 				continue
 
 			else:
@@ -219,12 +220,14 @@ def ProcessProgram(xml, program, guideName):
 																FiltersToAdd.append("sports")
 
 	FoundMovie = False
-	for xfilter in FiltersToAdd:
-		filter = str(xfilter).lower()
 
-		if (filter == "movie" or filter == "movies"):
-			print ("-------------------------->Found MOVIE")
-			FoundMovie = True
+	if not 'EpisodeNumber' in program:
+		for xfilter in FiltersToAdd:
+			filter = str(xfilter).lower()
+			if (filter == "movie" or filter == "movies"):
+				print ("-------------------------->Found MOVIE")
+				FoundMovie = True
+			
 
 	if FoundMovie:
 		ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
@@ -252,7 +255,6 @@ def ProcessProgram(xml, program, guideName):
 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + " . " + episode  + " . 0/1")
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
-		addedEpisode = True
 	else:
 		if (not FoundMovie):
 			#print ("-------------> Series")
