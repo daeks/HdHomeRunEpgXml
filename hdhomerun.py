@@ -140,6 +140,9 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
 	imdbData =  FindTitle(program['Title'])
+
+	if not imdbData == 0:
+		print ("Found Movie!")
 	
 	if 'Filter' in program:
 		# print ("Has Filters!")
@@ -152,13 +155,13 @@ def ProcessProgram(xml, program, guideName):
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
 					#Have we added a fake episode yet?
-					if (addedEpisode == False):
+					#if (addedEpisode == False):
 						#Ok, we will flag it as a series to get it out of movies
-						ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+					ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
 						#Add fake series/episode info
-						ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-						ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
-						addedEpisode = True
+						#ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+						#ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+					addedEpisode = True
 					continue
 				else:
 					#Does the Imdb say it's a movie?
