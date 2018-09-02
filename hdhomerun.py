@@ -304,7 +304,7 @@ def processChannel(xml, data, deviceAuth, HighDef):
 	#The first pull is for 4 hours, each of these are 8 hours
 	#So if we do this 21 times we will have fetched the complete week
 	try:
-		while ( counter < 24 ):
+		while ( counter < 32 ):
 			chanData = GetHdConnectChannelPrograms( deviceAuth, data.get('GuideNumber'), maxTime)
 			for chan in chanData:
 				for program in chan["Guide"]:
