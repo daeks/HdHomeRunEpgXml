@@ -230,7 +230,7 @@ def ProcessProgram(xml, program, guideName):
 		if (filter == "movie"):
 			FoundMovie = True
 		ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
-		
+
 	if (not FoundMovie):
 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
@@ -495,7 +495,7 @@ def LoadImdb():
 												else:
 													continue
 
-			MovieList[ShowTitle] = [TitleType, row["genres"].lower(),row["titleType"].lower()] 
+			MovieList[ShowTitle] = [TitleType, row["genres"], row["titleType"] ] 
 			
 			# if (str( row["titleType"]) not in ITypes ):
 			# 	ITypes[str( row["titleType"])] = 1
