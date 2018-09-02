@@ -39,7 +39,11 @@ You can schedule the docker run command above as a cronjob.
 * It will run and when it is done you will end up with file c:\craptastic\xmltv.xml
 * You can automate it however you like. Windows scheduler is fine.
 
-**Note that you need to be on the network with your hdhomerun device, and if you don’t subscribe to the hdhomerun DVR service you will only get 4 hours worth of programming.
+## Note:
+* that you need to be on the network with your hdhomerun device
+* If you don’t subscribe to the hdhomerun DVR service nor the premium TV you will only get 4 hours worth of programming.
+* If you subscribe to just the premium Tv you will get 1 Week of programming
+* If you subscribe to the DVR service you will get 2 Weeks of programming
 
 
 
