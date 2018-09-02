@@ -514,8 +514,7 @@ def LoadImdb():
 				print ("Indexed " + str(counter) + " movies.")
 
 
-	print (ITypes)
-	exit()
+	
 	print ("Finished indexing movies.")
 
 
