@@ -495,7 +495,15 @@ def LoadImdb():
 												else:
 													continue
 
-			MovieList[ShowTitle] = [TitleType, row["genres"], row["titleType"] ] 
+			genres = ""
+			if ("genres" in row)
+				genres = row["genres"]
+			dTitleType = ""
+			if ("titleType" in row)
+				dTitleType = row["titleType"]
+
+
+			MovieList[ShowTitle] = [TitleType, genres, dTitleType ] 
 			
 			# if (str( row["titleType"]) not in ITypes ):
 			# 	ITypes[str( row["titleType"])] = 1
