@@ -143,13 +143,19 @@ def ProcessProgram(xml, program, guideName):
 
 	# if not imdbData == 0:
 	# 	print ("Found Movie!")
+	if (not imdbData == 0):
+		if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
+			ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
+			addedEpisode = True
 	
 	if 'Filter' in program:
 		# print ("Has Filters!")
 		# print (program['Filter'])
 		
 		for filter in program['Filter']:
+
 			filterstringLower = str(filter).lower()
+
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies"):
 				#Does the movie not exist in the IMDB database?
