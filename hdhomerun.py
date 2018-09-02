@@ -141,8 +141,8 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
 	imdbData =  FindTitle(program['Title'])
 
-	if not imdbData == 0:
-		print ("Found Movie!")
+	# if not imdbData == 0:
+	# 	print ("Found Movie!")
 	
 	if 'Filter' in program:
 		# print ("Has Filters!")
