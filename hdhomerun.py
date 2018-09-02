@@ -496,10 +496,10 @@ def LoadImdb():
 													continue
 
 			genres = ""
-			if ("genres" in row)
+			if "genres" in row:
 				genres = row["genres"]
 			dTitleType = ""
-			if ("titleType" in row)
+			if "titleType" in row:
 				dTitleType = row["titleType"]
 
 
