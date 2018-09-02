@@ -144,52 +144,45 @@ def ProcessProgram(xml, program, guideName):
 	# if not imdbData == 0:
 	# 	print ("Found Movie!")
 	if (not imdbData == 0):
-		if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
+		if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short" or str(imdbData[0]).lower() == "tvmovie"):
 			ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
 			addedEpisode = True
 	
 	if 'Filter' in program:
-		# print ("Has Filters!")
-		# print (program['Filter'])
 		
 		for filter in program['Filter']:
-
 			filterstringLower = str(filter).lower()
+			if (filterstringLower == "news"):
+					invalidPreviousShown=True
 
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies"):
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
-					#Have we added a fake episode yet?
-					#if (addedEpisode == False):
-						#Ok, we will flag it as a series to get it out of movies
 					ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-						#Add fake series/episode info
-						#ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-						#ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 					addedEpisode = True
 					continue
-				else:
-					#Does the Imdb say it's a movie?
-					if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
-						#yes, ok, add the tag
-						ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
-						addedEpisode = True
-						continue
-					else:
-						#Set the type to what the IMDB says
-						ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
-						#Have we added a fake episode yet?
-						if (addedEpisode == False):
-							ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-							ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-							ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
-							addedEpisode = True
+				# else:
+				# 	#Does the Imdb say it's a movie?
+				# 	if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
+				# 		#yes, ok, add the tag
+				# 		ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
+				# 		addedEpisode = True
+				# 		continue
+				# 	else:
+				# 		#Set the type to what the IMDB says
+				# 		ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
+				# 		#Have we added a fake episode yet?
+				# 		if (addedEpisode == False):
+				# 			ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+				# 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+				# 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+				# 			addedEpisode = True
 			else:
 				#ok, just add whatever the category is to the record.
 				ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
-				if (filterstringLower == "news"):
-					invalidPreviousShown=True
+				continue
+				
 
 
 	if ( addedEpisode == False ):
