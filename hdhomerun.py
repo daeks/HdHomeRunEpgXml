@@ -131,123 +131,111 @@ def ProcessProgram(xml, program, guideName):
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 		addedEpisode = True
 
-
+	
 				
 	if 'ImageURL' in program:
 		ET.SubElement(xmlProgram, "icon", src=program['ImageURL'])
+
+	FiltersToAdd = []		
 
 	xmlAudio = ET.SubElement(xmlProgram,"audio")
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
 	imdbData =  FindTitle(program['Title'])
 
-	# if not imdbData == 0:
-	# 	print ("Found Movie!")
 	if (not imdbData == 0):
-		if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short" or str(imdbData[0]).lower() == "tvmovie"):
-			ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
-			addedEpisode = True
-	
-	if 'Filter' in program:
+
+		FiltersToAdd.append(str(imdbData[0]))				
+		words = str(imdbData[1]).lower().split(',')
+		for word in words:
+			if (str(word).strip() and not str(word).strip() == "\\N"):
+				if (str(word).strip() not in FiltersToAdd ):
+					FiltersToAdd.append(str(word).strip())
 		
+		FiltersToAdd.append(imdbData[2].lower())
+
+
+	if 'Filter' in program:
 		for filter in program['Filter']:
-			filterstringLower = str(filter).lower()
+			filterstringLower = str(filter).lower().strip()
+
+			if (filterstringLower in FiltersToAdd):
+				continue
+
 			if (filterstringLower == "news"):
-					invalidPreviousShown=True
+				invalidPreviousShown = True
 
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies"):
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
-					ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-					addedEpisode = True
+					print ("HdHomeRun ------------------------> Is Movie!!!!!")
+					#No, so lets just trust HdHomeRun
+					FiltersToAdd.append("movie")
 					continue
-				# else:
-				# 	#Does the Imdb say it's a movie?
-				# 	if ( str(imdbData[0]).lower() == "movie" or str(imdbData[0]).lower() == "short"):
-				# 		#yes, ok, add the tag
-				# 		ET.SubElement(xmlProgram, "category",lang="en").text = "movies"
-				# 		addedEpisode = True
-				# 		continue
-				# 	else:
-				# 		#Set the type to what the IMDB says
-				# 		ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
-				# 		#Have we added a fake episode yet?
-				# 		if (addedEpisode == False):
-				# 			ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-				# 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-				# 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
-				# 			addedEpisode = True
 			else:
 				#ok, just add whatever the category is to the record.
-				ET.SubElement(xmlProgram, "category",lang="en").text = filterstringLower
+				FiltersToAdd.append(filterstringLower)
 				continue
-				
 
-
-	if ( addedEpisode == False ):
-		if (imdbData==0):
-			#Lets do a check for keywords in the Title and force a category if we get a match
-			words = str(program['Title']).lower().split()
-			if 'news' in words :
-				ET.SubElement(xmlProgram, "category",lang="en").text = "news"
-				invalidPreviousShown = True
-			else:
-				if	('sports' in words):
-					ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-				else:
-					if ('football' in words):
-						ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-					else:
-						if ('soccer' in words):
-							ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-						else:
-							if ('baseball' in words):
-								ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-							else:
-								if ('dance' in words):
-									ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-								else:
-									if ('dancing' in words):
-										ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-									else:
-										if ('olympics' in words):
-											ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-										else:
-											if ('cycling' in words):
-												ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-											else:
-												if ('billiards' in words):
-													ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-												else:
-													if ('basketball' in words):
-														ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-													else:
-														if ('athletics' in words):
-															ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-														else:
-															if ('boxing' in words):
-																ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-															else:
-																if ('cricket' in words):
-																	ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-																else:
-																	if ('fencing' in words): 
-																		ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-																	else:
-																		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+	words = str(program['Title']).lower().split()
+	if 'news' in words :
+		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+		invalidPreviousShown = True
+	else:
+		if	('sports' in words):
+			FiltersToAdd.append("sports")
 		else:
-			ET.SubElement(xmlProgram, "category",lang="en").text = str(imdbData[0]).lower()
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+			if ('football' in words):
+				FiltersToAdd.append("sports")
+			else:
+				if ('soccer' in words):
+					FiltersToAdd.append("sports")
+				else:
+					if ('baseball' in words):
+						FiltersToAdd.append("sports")
+					else:
+						if ('dance' in words):
+							FiltersToAdd.append("sports")
+						else:
+							if ('dancing' in words):
+								FiltersToAdd.append("sports")
+							else:
+								if ('olympics' in words):
+									FiltersToAdd.append("sports")
+								else:
+									if ('cycling' in words):
+										FiltersToAdd.append("sports")
+									else:
+										if ('billiards' in words):
+											FiltersToAdd.append("sports")
+										else:
+											if ('basketball' in words):
+												FiltersToAdd.append("sports")
+											else:
+												if ('athletics' in words):
+													FiltersToAdd.append("sports")
+												else:
+													if ('boxing' in words):
+														FiltersToAdd.append("sports")
+													else:
+														if ('cricket' in words):
+															FiltersToAdd.append("sports")
+														else:
+															if ('fencing' in words): 
+																FiltersToAdd.append("sports")
+
+	FoundMovie = False
+	for filter in FiltersToAdd:
+		if (filter == "movie"):
+			FoundMovie = True
+		ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
+		
+	if (not FoundMovie):
+		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+
 	
-	if (imdbData != 0):
-		words = str(imdbData[1]).split(',')
-		for word in words:
-			if (str(word).strip() and not str(word).strip() == "\\N"):
-				ET.SubElement(xmlProgram, "category",lang="en").text = word.lower()
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
@@ -396,7 +384,6 @@ def DateTimeToEpisode(startDt):
 	season = time_now.strftime('%Y')
 	episode = time_now.strftime('%m%d%H%M')
 	return (season + " . " + episode  + " . 0/1")
-
 def DateTimeToEpisodeFriendly(startDt):
 	time_now = datetime.fromtimestamp(startDt)
 	season = time_now.strftime('%Y')
@@ -465,6 +452,7 @@ def LoadImdb():
 	 	with open('title.basics.tsv', 'wb') as f_out:
 	 		shutil.copyfileobj(f_in, f_out)		
 	
+	ITypes= {}
 	
 	counter = 0
 	with open('title.basics.tsv', encoding="utf8") as tsvfile:	
@@ -472,10 +460,54 @@ def LoadImdb():
 		for row in reader:
 			counter = counter + 1
 			ShowTitle = ''.join( c for c in  str(row["primaryTitle"]).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" )
-			MovieList[ShowTitle] = [ row["titleType"], row["genres"] ]
+
+			TitleType = "series"
+
+			if (row["titleType"] == "short"):
+				TitleType = "movie"
+			else:
+				if (row["titleType"] == "movie"):
+					TitleType = "movie"
+				else:
+					if (row["titleType"] == "tvMovie"):
+						TitleType = "movie"
+					else:
+						if (row["titleType"] == "tvShort"):
+							TitleType = "movie"
+						else:
+							if (row["titleType"] == "tvSpecial"):
+								TitleType = "movie"
+							else:
+								if (row["titleType"] == "tvSpecial"):
+									TitleType = "movie"
+								else:
+									if (row["titleType"] == "video"):
+										TitleType = "movie"
+									else:
+										if (row["titleType"] == "tvSeries"):
+											TitleType = "series"
+										else:
+											if (row["titleType"] == "tvEpisode"):
+												TitleType = "series"
+											else:
+												if (row["titleType"] == "tvMiniSeries"):
+													TitleType = "series"	
+												else:
+													continue
+
+			MovieList[ShowTitle] = [TitleType, row["genres"].lower(),row["titleType"].lower()] 
+			
+			# if (str( row["titleType"]) not in ITypes ):
+			# 	ITypes[str( row["titleType"])] = 1
+			# else:
+			# 	ITypes[str( row["titleType"])]  = ITypes[str( row["titleType"])] + 1
+
 			if ((counter % 10000)==0):
 				print ("Indexed " + str(counter) + " movies.")
 
+
+	print (ITypes)
+	exit()
 	print ("Finished indexing movies.")
 
 
