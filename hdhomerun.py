@@ -114,7 +114,7 @@ def ProcessProgram(xml, program, guideName):
 	#We add a blank entry to satisfy Plex
 	ET.SubElement(xmlProgram,"credits").text = ""
 
-	addedEpisode = False
+	
 	invalidPreviousShown = False
 
 	if 'EpisodeNumber' in program:
@@ -169,7 +169,7 @@ def ProcessProgram(xml, program, guideName):
 			if ( filterstringLower == "movies"):
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
-					print ("HdHomeRun ------------------------> Is Movie!!!!!")
+					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
 					FiltersToAdd.append("movie")
 					continue
@@ -227,11 +227,12 @@ def ProcessProgram(xml, program, guideName):
 
 	FoundMovie = False
 	for filter in FiltersToAdd:
-		if (filter == "movie"):
+		if (filter == "movie" or filter == "movies"):
 			FoundMovie = True
 		ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
 	if (not FoundMovie):
+		#print ("-------------> Series")
 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 
@@ -281,7 +282,7 @@ def processChannel(xml, data, deviceAuth):
 	#The first pull is for 4 hours, each of these are 8 hours
 	#So if we do this 21 times we will have fetched the complete week
 	try:
-		while ( counter < 40 ):
+		while ( counter < 2 ):
 			chanData = GetHdConnectChannelPrograms( deviceAuth, data.get('GuideNumber'), maxTime)
 			for chan in chanData:
 				for program in chan["Guide"]:
@@ -452,7 +453,7 @@ def LoadImdb():
 	 	with open('title.basics.tsv', 'wb') as f_out:
 	 		shutil.copyfileobj(f_in, f_out)		
 	
-	ITypes= {}
+	
 	
 	counter = 0
 	with open('title.basics.tsv', encoding="utf8") as tsvfile:	
