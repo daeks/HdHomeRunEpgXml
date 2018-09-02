@@ -63,7 +63,7 @@ namespace HdHomeRunEpgXml
             }
         }
 
-        public static Dictionary<string, int> TitleIndex = new Dictionary<string, int>();
+       public static Dictionary<int, string> TitleIndex = new Dictionary<int, string>();
 
         public static void DownloadImdb()
         {
@@ -83,17 +83,17 @@ namespace HdHomeRunEpgXml
             Decompress(info);
             string line;
             int counter = 0;
-            var file = new StreamReader(@"title.basics.tsv");
+            var file = new StreamReader("title.basics.tsv");
             while ((line = file.ReadLine()) != null)
             {
                 counter = counter + 1;
                 if (string.IsNullOrEmpty(line))
                     continue;
                 var elements = line.Split('\t');
-                string key = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
-                if (TitleIndex.ContainsKey(key))
-                    continue;
-                TitleIndex.Add(key,counter);
+                string showTitle = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+                int key = showTitle.GetHashCode();
+                if (!TitleIndex.ContainsKey(key))
+                    TitleIndex.Add(key,line);
             }
         }
 
@@ -102,16 +102,10 @@ namespace HdHomeRunEpgXml
         public static string[] FindTitle(string rshowTitle)
         {
             string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
-            int lineNumber = -1;
-            if (TitleIndex.ContainsKey(showTitle))
-                lineNumber = TitleIndex[showTitle];
+            int key = showTitle.GetHashCode();
 
-            if (lineNumber == -1)
-                return null;
-
-            string line = File.ReadLines(@"title.basics.tsv").ElementAt(lineNumber);
-            if(line.Length > 0)
-                return line.Split('\t');
+            if (TitleIndex.ContainsKey(key))
+                return TitleIndex[key].Split('\t');
 
             return null;
         }
