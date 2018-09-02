@@ -159,12 +159,12 @@ def ProcessProgram(xml, program, guideName):
 			if ( filterstringLower == "movies" or filterstringLower == "movie"):
 				print ("----------------------  MOVIE TAG IN HdHomeRun FILTER")
 				#Does the movie not exist in the IMDB database?
-				if ( imdbData == 0 ):
+				#if ( imdbData == 0 ):
 					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
-					if (not "movie" in FiltersToAdd):
-						FiltersToAdd.append("movie")
-					continue
+				if (not "movie" in FiltersToAdd):
+					FiltersToAdd.append("movie")
+				continue
 
 			else:
 				#ok, just add whatever the category is to the record.
