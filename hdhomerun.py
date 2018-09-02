@@ -230,10 +230,10 @@ def ProcessProgram(xml, program, guideName):
 
 	for xfilter in FiltersToAdd:
 		filter = str(filter).lower()
-		if (FoundMovie and (str(filter).lower() = "series")):
+		if (FoundMovie and (str(filter).lower() == "series")):
 			print("--------------------------->Skipping Series Tag!!!")
 			continue
-		if (FoundMovie and (str(filter).lower() = "movie")):
+		if (FoundMovie and (str(filter).lower() == "movie")):
 			continue
 		else:
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
