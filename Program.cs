@@ -63,7 +63,7 @@ namespace HdHomeRunEpgXml
             }
         }
 
-       public static Dictionary<int, string> TitleIndex = new Dictionary<int, string>();
+        public static Dictionary<int, MovieData> TitleIndex = new Dictionary<int, MovieData>();
 
         public static void DownloadImdb()
         {
@@ -79,7 +79,7 @@ namespace HdHomeRunEpgXml
             }
 
             var info = new FileInfo("title.basics.tsv.gz");
-            
+
             Decompress(info);
             string line;
             int counter = 0;
@@ -92,22 +92,50 @@ namespace HdHomeRunEpgXml
                 var elements = line.Split('\t');
                 string showTitle = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
                 int key = showTitle.GetHashCode();
+
                 if (!TitleIndex.ContainsKey(key))
-                    TitleIndex.Add(key,line);
+                {
+                    string TitleType = "series";
+                    if (elements[1].Equals("short", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("movie", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("tvMovice", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("tvShort", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("tvSpecial", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("video", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "movie";
+                    else if (elements[1].Equals("tvSeries", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "series";
+                    else if (elements[1].Equals("tvEpisode", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "series";
+                    else if (elements[1].Equals("tvMiniSeries", StringComparison.InvariantCultureIgnoreCase))
+                        TitleType = "series";
+                    else
+                        continue;
+
+                    TitleIndex.Add(key, new MovieData()
+                    {
+                        TitleType = TitleType,
+                        OriginalTitleType = elements[1],
+                        Genres = elements[8].Split(',').ToList()
+                    });
+                }
+
             }
         }
 
         public static List<char> InvalidChar = new List<char>() { '!', '@', '#', '$', '%', '^', '&', '&', '*', '(', '(', ')', '_', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', ',', '>', '>', '?', '/' };
 
-        public static string[] FindTitle(string rshowTitle)
+        public static MovieData FindTitle(string rshowTitle)
         {
             string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
             int key = showTitle.GetHashCode();
 
-            if (TitleIndex.ContainsKey(key))
-                return TitleIndex[key].Split('\t');
-
-            return null;
+            return TitleIndex.ContainsKey(key) ? TitleIndex[key] : null;
         }
 
         private static void Main(string[] args)
@@ -223,6 +251,6 @@ namespace HdHomeRunEpgXml
             Console.WriteLine("Epg file saved to: " + args[0]);
         }
 
-   
+
     }
 }

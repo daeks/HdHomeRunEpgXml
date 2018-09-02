@@ -70,6 +70,7 @@
     <Compile Include="Data\HdConnectProgram.cs" />
     <Compile Include="Data\HdConnectChannel.cs" />
     <Compile Include="Data\ImdbRw.cs" />
+    <Compile Include="Data\MovieData.cs" />
     <Compile Include="Util\HdHomeRunXml.cs" />
     <Compile Include="Util\IpAddressFinder.cs" />
     <Compile Include="Util\Time.cs" />

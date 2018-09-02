@@ -107,8 +107,99 @@ namespace HdHomeRunEpgXml.Util
             eleAudio.AppendChild(eleAudioChild);
             eleProgram.AppendChild(eleAudio);
 
-            bool addedEpisode = false;
+
             bool invalidPreviousShown = false;
+            List<string> filtersToAdd = new List<string>();
+            var imdbData = Program.FindTitle(program.Title);
+
+            if (imdbData != null)
+            {
+                filtersToAdd.Add(imdbData.TitleType);
+                foreach (string word in imdbData.Genres)
+                    if (!word.Equals("\\N", StringComparison.InvariantCultureIgnoreCase))
+                        if (!filtersToAdd.Contains(word.ToLower().Trim()))
+                            filtersToAdd.Add(word.ToLower().Trim());
+
+                if (!filtersToAdd.Contains(imdbData.TitleType.ToLower()))
+                    filtersToAdd.Add(imdbData.TitleType.ToLower());
+            }
+
+            if (program.Filter != null && program.Filter.Count > 0)
+                foreach (string filter in program.Filter)
+                {
+                    string filterstringLower = filter.ToLower().Trim();
+                    if (filtersToAdd.Contains(filterstringLower))
+                        continue;
+
+                    if (filterstringLower.Equals("news", StringComparison.InvariantCultureIgnoreCase))
+                        invalidPreviousShown = true;
+
+                    //# Does HdHomeRun think it is a movie?
+                    if (filterstringLower.Equals("movies", StringComparison.InvariantCultureIgnoreCase) ||
+                        filterstringLower.Equals("movie", StringComparison.InvariantCultureIgnoreCase))
+                    {
+
+                        Console.WriteLine("----------------------  MOVIE TAG IN HdHomeRun FILTER");
+                        //# Does the movie not exist in the IMDB database?
+                        //#if (imdbData == 0 ):
+                        //# print ("HdHomeRun ------------------------> Is Movie!!!!!")
+                        //# No, so lets just trust HdHomeRun
+                        if (string.IsNullOrEmpty(program.EpisodeNumber))
+                            if (!filtersToAdd.Contains("movie"))
+                                filtersToAdd.Add("movie");
+                        continue;
+                    }
+                    if (!filtersToAdd.Contains(filterstringLower))
+                        filtersToAdd.Add(filterstringLower);
+                }
+            List<string> words = GetWords(program.Title.ToLower());
+            if (words.Contains("news"))
+            {
+                eleProgram.AppendChild(CreateElement(doc, "category", "news"));
+                invalidPreviousShown = true;
+            }
+            else
+            {
+                if (words.Contains("sports") ||
+                    words.Contains("football") ||
+                    words.Contains("soccer") ||
+                    words.Contains("baseball") ||
+                    words.Contains("dance") ||
+                    words.Contains("dancing") ||
+                    words.Contains("olympics") ||
+                    words.Contains("cycling") ||
+                    words.Contains("billiards") ||
+                    words.Contains("basketball") ||
+                    words.Contains("athletics") ||
+                    words.Contains("boxing") ||
+                    words.Contains("cricket") ||
+                    words.Contains("fencing"))
+                    filtersToAdd.Add("sports");
+            }
+
+            bool foundMovie = false;
+
+            if (string.IsNullOrEmpty(program.EpisodeNumber))
+            {
+                if (filtersToAdd.Any(filter =>
+                    filter.Equals("movie", StringComparison.InvariantCultureIgnoreCase) ||
+                    filter.Equals("movies", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    Console.WriteLine("-------------------------->Found MOVIE");
+                    foundMovie = true;
+                    eleProgram.AppendChild(CreateElement(doc, "category", "movie"));
+                }
+            }
+
+            foreach (string filter in filtersToAdd)
+            {
+                if (filter.Equals("series", StringComparison.InvariantCultureIgnoreCase) ||
+                    filter.Equals("movie", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+                eleProgram.AppendChild(CreateElement(doc, "category", filter.ToLower().Trim()));
+            }
 
             if (!string.IsNullOrEmpty(program.EpisodeNumber))
             {
@@ -120,167 +211,36 @@ namespace HdHomeRunEpgXml.Util
                 eleProgram.AppendChild(CreateElement(doc, "episode-num", v, "system", "xmltv_ns"));
                 //Add a category of series.
                 eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                addedEpisode = true;
             }
-
-            var imdbData = Program.FindTitle(program.Title);
-
-            if (program.Filter != null && program.Filter.Count > 0)
-                foreach (string filter in program.Filter)
-                {
-                    string filterstringLower = filter.ToLower();
-                    if (filterstringLower.Equals("movies", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        if (imdbData == null)
-                        {
-                            if (addedEpisode == false)
-                            {
-                                eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
-                                addedEpisode = true;
-                            }
-                        }
-                        else
-                        {
-                            //Does the Imdb say it's a movie?
-                            if (imdbData[1].Equals("movie", StringComparison.InvariantCultureIgnoreCase) ||
-                                imdbData[1].Equals("short", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                // yes, ok, add the tag
-                                eleProgram.AppendChild(CreateElement(doc, "category", "movies"));
-                                addedEpisode = true;
-                            }
-                            else
-                            {
-                                // Set the type to what the IMDB says
-                                eleProgram.AppendChild(CreateElement(doc, "category", imdbData[1].ToLower()));
-                                // Have we added a fake episode yet?
-                                eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
-                                eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
-                                addedEpisode = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", filterstringLower));
-                        if (filterstringLower.Equals("news", StringComparison.InvariantCultureIgnoreCase))
-                            invalidPreviousShown = true;
-                    }
-                }
-
-            if (addedEpisode == false)
-                if (imdbData == null)
-                {
-                    var words = GetWords(program.Title.ToLower());
-                    if (words.Contains("news"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "news"));
-                        invalidPreviousShown = true;
-                    }
-                    else if (words.Contains("sports"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("football"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("soccer"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("baseball"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("dance"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("dancing"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("olympics"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("cycling"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("billards"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("basketball"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("athletics"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("boxing"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("cricket"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else if (words.Contains("fencing"))
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "sports"));
-                    }
-                    else
-                    {
-                        eleProgram.AppendChild(CreateElement(doc, "category", "series"));
-                    }
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
-                }
-                else
-                {
-                    eleProgram.AppendChild(CreateElement(doc, "category", imdbData[1].ToLower()));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
-                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
-                }
-
-            if (imdbData != null)
+            else
             {
-                var words = imdbData[8].Split(',');
-                foreach (string word in words)
-                    if (!string.IsNullOrEmpty(word))
-                    {
-                        string addWord = word;
-                        if (word.Contains("\r"))
-                            addWord = word.Remove('\r');
-                        eleProgram.AppendChild(CreateElement(doc, "category", addWord.ToLower()));
-                    }
+                if (!foundMovie)
+                {
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DatetimeToEpisodeFriendly(program.StartTime), "system", "onscreen"));
+                    eleProgram.AppendChild(CreateElement(doc, "episode-num", DateTimeToEpisode(program.StartTime), "system", "xmltv_ns"));
+                    eleProgram.AppendChild(CreateElement(doc, "category", "series"));
+                }
             }
 
             //Something is funny with previously shown, it appears to have info into the future
             //I think it has to do w/ some of the feeds being west coast and me
             //being on the east coast.
             //So just to fix this, if the previous shown > the air date we just don't include it.
-            if (program.OriginalAirdate > 0 && !invalidPreviousShown)
-                if (Time.UnixTimeStampToDateTime(program.OriginalAirdate).ToLocalTime().AddDays(1) <
-                    Time.UnixTimeStampToDateTime(program.StartTime).ToLocalTime())
-                {
-                    //Add when it was previously shown
-                    var prevShown = doc.CreateElement(string.Empty, "previously-shown", string.Empty);
-                    prevShown.SetAttribute("start",
-                        Time.UnixTimeStampToDateTime(program.OriginalAirdate).ToLocalTime().AddDays(1).ToString(DateFormat) + " " + Time.GetOffset());
-                    eleProgram.AppendChild(prevShown);
-                }
-                else
-                {
-                    Console.WriteLine("Previous Shown in FUTURE....  Watch out Marty McFly!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                }
+            if (program.OriginalAirdate <= 0 || invalidPreviousShown)
+                return eleProgram;
+            if (Time.UnixTimeStampToDateTime(program.OriginalAirdate).ToLocalTime().AddDays(1) <
+                Time.UnixTimeStampToDateTime(program.StartTime).ToLocalTime())
+            {
+                //Add when it was previously shown
+                var prevShown = doc.CreateElement(string.Empty, "previously-shown", string.Empty);
+                prevShown.SetAttribute("start",
+                    Time.UnixTimeStampToDateTime(program.OriginalAirdate).ToLocalTime().AddDays(1).ToString(DateFormat) + " " + Time.GetOffset());
+                eleProgram.AppendChild(prevShown);
+            }
+            else
+            {
+                Console.WriteLine("Previous Shown in FUTURE....  Watch out Marty McFly!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            }
 
             return eleProgram;
         }
@@ -336,7 +296,7 @@ namespace HdHomeRunEpgXml.Util
             try
             {
                 //Each request represents 4 hours, so this will fetch 25 * 4 or 100 hours of programming
-                while (counter < 24)
+                while (counter < 4)
                 {
                     //Request the next programming for the channel
 
