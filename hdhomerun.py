@@ -220,7 +220,7 @@ def ProcessProgram(xml, program, guideName):
 
 	FoundMovie = False
 	for xfilter in FiltersToAdd:
-		filter = str(filter).lower()
+		filter = str(xfilter).lower()
 
 		if (filter == "movie" or filter == "movies"):
 			print ("-------------------------->Found MOVIE")
@@ -229,7 +229,7 @@ def ProcessProgram(xml, program, guideName):
 
 
 	for xfilter in FiltersToAdd:
-		filter = str(filter).lower()
+		filter = str(xfilter).lower()
 		if (FoundMovie and (str(filter).lower() == "series")):
 			print("--------------------------->Skipping Series Tag!!!")
 			continue
