@@ -117,19 +117,7 @@ def ProcessProgram(xml, program, guideName):
 	
 	invalidPreviousShown = False
 
-	if 'EpisodeNumber' in program:
-		#add the friendly display
-		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
-		#Fake the xml version
-		en = program['EpisodeNumber']
-		parts = en.split("E")
-		season = parts[0].replace("S","")
-		episode = parts[1]
-		#Assign the fake xml version
-		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + " . " + episode  + " . 0/1")
-		#set the category flag to series
-		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
-		addedEpisode = True
+
 
 	
 				
@@ -152,8 +140,9 @@ def ProcessProgram(xml, program, guideName):
 			if (str(word).strip() and not str(word).strip() == "\\N"):
 				if (str(word).strip() not in FiltersToAdd ):
 					FiltersToAdd.append(str(word).strip())
-		
-		FiltersToAdd.append(imdbData[2].lower())
+
+		if (str(imdbData[2]).strip() not in FiltersToAdd ):
+			FiltersToAdd.append(imdbData[2].lower())
 
 
 	if 'Filter' in program:
@@ -167,16 +156,16 @@ def ProcessProgram(xml, program, guideName):
 				invalidPreviousShown = True
 
 			#Does HdHomeRun think it is a movie?
-			if ( filterstringLower == "movies"):
+			if ( filterstringLower == "movies" or filterstringLower == "movie"):
 				print ("----------------------  MOVIE TAG IN HdHomeRun FILTER")
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
 					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
 					#No, so lets just trust HdHomeRun
-					FiltersToAdd.append("movie")
+					if (not "movie" in FiltersToAdd)
+						FiltersToAdd.append("movie")
 					continue
-				else:
-					FiltersToAdd.append(str(imdbData[0]))
+
 			else:
 				#ok, just add whatever the category is to the record.
 				FiltersToAdd.append(filterstringLower)
@@ -230,18 +219,43 @@ def ProcessProgram(xml, program, guideName):
 																FiltersToAdd.append("sports")
 
 	FoundMovie = False
-	for filter in FiltersToAdd:
+	for xfilter in FiltersToAdd:
+		filter = str(filter).lower()
+
 		if (filter == "movie" or filter == "movies"):
 			print ("-------------------------->Found MOVIE")
 			FoundMovie = True
 			ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-		else:			
+
+
+	for xfilter in FiltersToAdd:
+		filter = str(filter).lower()
+		if (FoundMovie and (str(filter).lower() = "series")):
+			print("--------------------------->Skipping Series Tag!!!")
+			continue
+		if (FoundMovie and (str(filter).lower() = "movie")):
+			continue
+		else:
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
-	if (not FoundMovie):
-		#print ("-------------> Series")
-		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+	if 'EpisodeNumber' in program:
+		#add the friendly display
+		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
+		#Fake the xml version
+		en = program['EpisodeNumber']
+		parts = en.split("E")
+		season = parts[0].replace("S","")
+		episode = parts[1]
+		#Assign the fake xml version
+		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + " . " + episode  + " . 0/1")
+		#set the category flag to series
+		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
+		addedEpisode = True
+	else:
+		if (not FoundMovie):
+			#print ("-------------> Series")
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 
 	
 	
