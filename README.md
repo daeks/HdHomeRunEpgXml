@@ -31,6 +31,15 @@ Steps to use:
 * Run `docker run --rm hdhomerunepgxml > /[directory]/hdhomerun.xml` where [directory] is the place you want the file stored.
 You can schedule the docker run command above as a cronjob.
 
+## Running with Windows
+* Download from the latest release from githib page. 
+* You will see Release.MM.DD.YYYY.R.zip. Unzip that onto your system in whatever folder you want. 
+* Open a command window and go that directory
+* run HdHomeRunEpgXml full path to where you want the xmltv file to be so for example, "HdHomeRunEpgXml c:\craptastic\xmltv.xml"
+* It will run and when it is done you will end up with file c:\craptastic\xmltv.xml
+* You can automate it however you like. Windows scheduler is fine.
+
+**Note that you need to be on the network with your hdhomerun device, and if you don’t subscribe to the hdhomerun DVR service you will only get 4 hours worth of programming.
 
 
 
