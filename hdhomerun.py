@@ -175,10 +175,12 @@ def ProcessProgram(xml, program, guideName):
 
 							#Ok, we have to go with what HdHomeRun says, no option.
 							FiltersToAdd.append("movie")
+							WriteLog ("Chk: " + program['Title'] + "---> Movie")
 					
 						else:
 							
 							FiltersToAdd.append("series")
+							WriteLog ("Chk: " + program['Title'] + "---> Series")
 
 				continue
 
@@ -200,50 +202,66 @@ def ProcessProgram(xml, program, guideName):
 
 		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
 
+		WriteLog ("Chk: " + program['Title'] + "---> News")
+
 		invalidPreviousShown = True
 
 	else:
 		if	('sports' in words):
 			FiltersToAdd.append("sports")
+			WriteLog ("Chk: " + program['Title'] + "---> Sports")
 		else:
 			if ('football' in words):
 				FiltersToAdd.append("sports")
+				WriteLog ("Chk: " + program['Title'] + "---> Sports")
 			else:
 				if ('soccer' in words):
 					FiltersToAdd.append("sports")
+					WriteLog ("Chk: " + program['Title'] + "---> Sports")
 				else:
 					if ('baseball' in words):
 						FiltersToAdd.append("sports")
+						WriteLog ("Chk: " + program['Title'] + "---> Sports")
 					else:
 						if ('dance' in words):
 							FiltersToAdd.append("sports")
+							WriteLog ("Chk: " + program['Title'] + "---> Sports")
 						else:
 							if ('dancing' in words):
 								FiltersToAdd.append("sports")
+								WriteLog ("Chk: " + program['Title'] + "---> Sports")
 							else:
 								if ('olympics' in words):
 									FiltersToAdd.append("sports")
+									WriteLog ("Chk: " + program['Title'] + "---> Sports")
 								else:
 									if ('cycling' in words):
 										FiltersToAdd.append("sports")
+										WriteLog ("Chk: " + program['Title'] + "---> Sports")
 									else:
 										if ('billiards' in words):
 											FiltersToAdd.append("sports")
+											WriteLog ("Chk: " + program['Title'] + "---> Sports")
 										else:
 											if ('basketball' in words):
 												FiltersToAdd.append("sports")
+												WriteLog ("Chk: " + program['Title'] + "---> Sports")
 											else:
 												if ('athletics' in words):
 													FiltersToAdd.append("sports")
+													WriteLog ("Chk: " + program['Title'] + "---> Sports")
 												else:
 													if ('boxing' in words):
 														FiltersToAdd.append("sports")
+														WriteLog ("Chk: " + program['Title'] + "---> Sports")
 													else:
 														if ('cricket' in words):
 															FiltersToAdd.append("sports")
+															WriteLog ("Chk: " + program['Title'] + "---> Sports")
 														else:
 															if ('fencing' in words): 
 																FiltersToAdd.append("sports")
+																WriteLog ("Chk: " + program['Title'] + "---> Sports")
 
 	FoundMovie = False
 
@@ -258,6 +276,8 @@ def ProcessProgram(xml, program, guideName):
 				ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
 
 				FoundMovie = True
+
+				WriteLog ("OFFICIAL: " + program['Title'] + "---> MOVIE")
 
 
 	for xfilter in FiltersToAdd:
@@ -289,6 +309,8 @@ def ProcessProgram(xml, program, guideName):
 		
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
+
+		WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
 	
 	else:
 	
@@ -299,6 +321,8 @@ def ProcessProgram(xml, program, guideName):
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 			
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+
+			WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
