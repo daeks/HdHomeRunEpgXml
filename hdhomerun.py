@@ -150,10 +150,8 @@ def ProcessProgram(xml, program, guideName):
 		if (str(imdbData[2]).strip() not in FiltersToAdd ):
 			FiltersToAdd.append(imdbData[2].lower())
 
-	containsMovie = False
+	
 	if 'Filter' in program:
-
-		
 
 		for filter in program['Filter']:
 		
@@ -167,24 +165,18 @@ def ProcessProgram(xml, program, guideName):
 
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies" or filterstringLower == "movie"):
-				print ("----------------------  MOVIE TAG IN HdHomeRun FILTER")
-				containsMovie=True
 				#Does the movie not exist in the IMDB database?
-				#if ( imdbData == 0 ):
-					#print ("HdHomeRun ------------------------> Is Movie!!!!!")
-					#No, so lets just trust HdHomeRun
-				if not 'EpisodeNumber' in program:
-					if (not "movie" in FiltersToAdd):
-						FiltersToAdd.append("movie")
+				if ( imdbData == 0 ):
+					if not 'EpisodeNumber' in program:
+						if (not "movie" in FiltersToAdd):
+							FiltersToAdd.append("movie")
 				continue
-
 			else:
 				#ok, just add whatever the category is to the record.
 				FiltersToAdd.append(filterstringLower)
 				continue
 	
-	if (not containsMovie):
-		FiltersToAdd.append("series")
+
 
 	words = str(program['Title']).lower().split()
 	if 'news' in words :
@@ -241,7 +233,7 @@ def ProcessProgram(xml, program, guideName):
 			if (filter == "movie" or filter == "movies"):
 				print ("-------------------------->Found MOVIE")
 				FoundMovie = True
-			
+
 
 	if FoundMovie:
 		ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
