@@ -87,26 +87,19 @@ def HdHomeRunTimeStampToDate(hdTimeStamp):
 	return datetime.fromtimestamp(hdTimeStamp)# - (86400 * 365))
 
 def ProcessProgram(xml, program, guideName):
-
-	WriteLog ("Processing Show: " + program['Title'])
-
 	timezone_offset = get_utc_offset_str().replace(":","")
-	#program
+
 	#Create the "programme" element and set the Channel attribute to "GuideName" from json
 	xmlProgram = ET.SubElement(xml, "programme", channel = guideName)
-	#	 channel=channel['GuideName'])
 
 	#set the start date and time from the feed
-	# xmlProgram.set("start", datetime.fromtimestamp(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 	xmlProgram.set("start", HdHomeRunTimeStampToDate(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#set the end date and time from the feed
-	# xmlProgram.set("stop", datetime.fromtimestamp(program['EndTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 	xmlProgram.set("stop", HdHomeRunTimeStampToDate(program['EndTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#Title
 	ET.SubElement(xmlProgram, "title", lang="en").text = program['Title']
-
 		
 	#Sub Title
 	if 'EpisodeTitle' in program:
@@ -119,13 +112,8 @@ def ProcessProgram(xml, program, guideName):
 	#Credits
 	#We add a blank entry to satisfy Plex
 	ET.SubElement(xmlProgram,"credits").text = ""
-
 	
 	invalidPreviousShown = False
-
-
-
-	
 				
 	if 'ImageURL' in program:
 		ET.SubElement(xmlProgram, "icon", src=program['ImageURL'])
@@ -136,26 +124,32 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")	
 
-
 	imdbData =  FindTitle(program['Title'])
-
 
 	if (not imdbData == 0):
 
-		FiltersToAdd.append(str(imdbData[0]))		
+		WriteLog ("Chk: " + program['Title'] + "--->" + str( imdbData[0] ) )
 
-		words = str(imdbData[1]).lower().split(',')
+		FiltersToAdd.append( str( imdbData[0] ) )		
+
+		words = str( imdbData[1] ).lower().split( ',' )
 
 		for word in words:
+
 			if (str(word).strip() and not str(word).strip() == "\\N"):
+
 				if (str(word).strip() not in FiltersToAdd ):
+
 					FiltersToAdd.append(str(word).strip())
 
 		if (str(imdbData[2]).strip() not in FiltersToAdd ):
 
 			FiltersToAdd.append(imdbData[2].lower())
+	else:
 
+		WriteLog ("Chk: " + program['Title'] + "---> Unknown")
 	
+	#Now we process the Filters given to us by HdHomeRun
 	if 'Filter' in program:
 
 		for filter in program['Filter']:
@@ -170,28 +164,36 @@ def ProcessProgram(xml, program, guideName):
 
 			#Does HdHomeRun think it is a movie?
 			if ( filterstringLower == "movies" or filterstringLower == "movie"):
+				
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
+					
+					if (not "movie" in FiltersToAdd and not "series" in FiltersToAdd):
+						
+						#If it has an episode # than it can't be a movie
+						if not 'EpisodeNumber' in program:
 
-					if not 'EpisodeNumber' in program:
-
-						if (not "movie" in FiltersToAdd):
-
+							#Ok, we have to go with what HdHomeRun says, no option.
 							FiltersToAdd.append("movie")
+					
+						else:
+							
+							FiltersToAdd.append("series")
 
 				continue
 
 			else:
 				
-				if (not filterstringLower in FiltersToAdd):
+				if ( not filterstringLower in FiltersToAdd ):
 					
 					#ok, just add whatever the category is to the record.
-					FiltersToAdd.append(filterstringLower)
+					FiltersToAdd.append( filterstringLower )
 
 				continue
 	
 
-
+	#We will split the words of the title up, and do some
+	#basic checks on it for news and sports.
 	words = str(program['Title']).lower().split()
 
 	if 'news' in words :
@@ -271,33 +273,42 @@ def ProcessProgram(xml, program, guideName):
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
 	if 'EpisodeNumber' in program:
+
 		#add the friendly display
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
+		
 		#Fake the xml version
 		en = program['EpisodeNumber']
+		
 		parts = en.split("E")
 		season =int( parts[0].replace("S","")) - 1
 		episode = int(parts[1]) -1
+		
 		#Assign the fake xml version
 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (str(season-1) + "." + str(episode-1)  + ".0/1")
+		
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
-	else:
-		if (not FoundMovie):
-			#print ("-------------> Series")
-			ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
-
 	
+	else:
+	
+		if (not FoundMovie):
+	
+			ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
+
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
+			
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
 		#sometimes the prevshown is in the future, which kinda screws up things
 		#so if it's in the future I no longer add it.
+
 		if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
+
 			#The 86400 is because the HdHomeRun feed is off by a day, this fixes that.
-			ET.SubElement(xmlProgram, "previously-shown", start = HdHomeRunTimeStampToDate(program['OriginalAirdate']  ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+			ET.SubElement(xmlProgram, "previously-shown", start = HdHomeRunTimeStampToDate(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#Return the endtime so we know where to start from on next loop.
 	return program['EndTime']
