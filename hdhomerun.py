@@ -150,10 +150,10 @@ def ProcessProgram(xml, program, guideName):
 		if (str(imdbData[2]).strip() not in FiltersToAdd ):
 			FiltersToAdd.append(imdbData[2].lower())
 
-
+	containsMovie = False
 	if 'Filter' in program:
 
-		containsMovie = False
+		
 
 		for filter in program['Filter']:
 		
