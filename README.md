@@ -34,7 +34,7 @@ Steps to use:
 * Make sure you have docker installed and available in your `$PATH`.
 * Download the `Dockerfile` file in the ./Docker to an empty directory.
 * Change into the new directory with the Dockerfile in it.
-* Run `docker build -t hdhomerunepgxml .` (don't miss the ".")
+* Run `docker build -t hdhomerunepgxml .` (don't miss the "." or alternatively specify the path to the dockerfile instead of '.' I.E. /home/plex/Docker)
 * Run `docker run --rm hdhomerunepgxml > /[directory]/hdhomerun.xml` where [directory] is the place you want the file stored.
 You can schedule the docker run command above as a cronjob.
 
