@@ -125,10 +125,17 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")	
 
 	imdbData =  FindTitle(program['Title'])
+	FoundMovie = False
+
 
 	if (not imdbData == 0):
 
 		WriteLog ("Chk: " + program['Title'] + "--->" + str( imdbData[0] ) )
+
+		if ( str( imdbData[0] ) == "movie" ):
+
+			FoundMovie = True
+			
 
 		FiltersToAdd.append( str( imdbData[0] ) )		
 
@@ -145,6 +152,7 @@ def ProcessProgram(xml, program, guideName):
 		if (str(imdbData[2]).strip() not in FiltersToAdd ):
 
 			FiltersToAdd.append(imdbData[2].lower())
+
 	else:
 
 		WriteLog ("Chk: " + program['Title'] + "---> Unknown")
@@ -263,7 +271,7 @@ def ProcessProgram(xml, program, guideName):
 																FiltersToAdd.append("sports")
 																WriteLog ("Chk: " + program['Title'] + "---> Sports")
 
-	FoundMovie = False
+	
 
 	if not 'EpisodeNumber' in program:
 
@@ -569,22 +577,19 @@ def LoadImdb():
 							if (row["titleType"] == "tvSpecial"):
 								TitleType = "movie"
 							else:
-								if (row["titleType"] == "tvSpecial"):
-									TitleType = "movie"
+								if (row["titleType"] == "video"):
+									continue
 								else:
-									if (row["titleType"] == "video"):
-										TitleType = "movie"
+									if (row["titleType"] == "tvSeries"):
+										TitleType = "series"
 									else:
-										if (row["titleType"] == "tvSeries"):
-											TitleType = "series"
+										if (row["titleType"] == "tvEpisode"):
+											continue
 										else:
-											if (row["titleType"] == "tvEpisode"):
-												TitleType = "series"
+											if (row["titleType"] == "tvMiniSeries"):
+												TitleType = "series"	
 											else:
-												if (row["titleType"] == "tvMiniSeries"):
-													TitleType = "series"	
-												else:
-													continue
+												continue
 
 			genres = ""
 			if "genres" in row:
