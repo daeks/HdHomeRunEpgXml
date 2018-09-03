@@ -255,10 +255,10 @@ def ProcessProgram(xml, program, guideName):
 		#Fake the xml version
 		en = program['EpisodeNumber']
 		parts = en.split("E")
-		season = parts[0].replace("S","")
-		episode = parts[1]
+		season =int( parts[0].replace("S","")) - 1
+		episode = int(parts[1]) -1
 		#Assign the fake xml version
-		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + "." + episode  + ".0/1")
+		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (str(season-1) + "." + str(episode-1)  + ".0/1")
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 	else:
@@ -414,8 +414,8 @@ def ClearLog():
 def DateTimeToEpisode(startDt):
 
 	time_now = HdHomeRunTimeStampToDate(startDt)
-	season = time_now.strftime('%Y')
-	episode = time_now.strftime('%m%d%H%M')
+	season = str(int(time_now.strftime('%Y'))-1)
+	episode =str( int(time_now.strftime('%m%d%H%M'))-1)
 	return (season + "." + episode  + ". 0/1")
 
 def DateTimeToEpisodeFriendly(startDt):
