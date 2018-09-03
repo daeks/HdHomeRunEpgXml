@@ -134,20 +134,25 @@ def ProcessProgram(xml, program, guideName):
 
 	xmlAudio = ET.SubElement(xmlProgram,"audio")
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
-	ET.SubElement(xmlProgram, "subtitles", type="teletext")		
+	ET.SubElement(xmlProgram, "subtitles", type="teletext")	
+
+
 	imdbData =  FindTitle(program['Title'])
+
 
 	if (not imdbData == 0):
 
 		FiltersToAdd.append(str(imdbData[0]))		
 
 		words = str(imdbData[1]).lower().split(',')
+
 		for word in words:
 			if (str(word).strip() and not str(word).strip() == "\\N"):
 				if (str(word).strip() not in FiltersToAdd ):
 					FiltersToAdd.append(str(word).strip())
 
 		if (str(imdbData[2]).strip() not in FiltersToAdd ):
+
 			FiltersToAdd.append(imdbData[2].lower())
 
 	
@@ -167,21 +172,34 @@ def ProcessProgram(xml, program, guideName):
 			if ( filterstringLower == "movies" or filterstringLower == "movie"):
 				#Does the movie not exist in the IMDB database?
 				if ( imdbData == 0 ):
+
 					if not 'EpisodeNumber' in program:
+
 						if (not "movie" in FiltersToAdd):
+
 							FiltersToAdd.append("movie")
+
 				continue
+
 			else:
-				#ok, just add whatever the category is to the record.
-				FiltersToAdd.append(filterstringLower)
+				
+				if (not filterstringLower in FiltersToAdd):
+					
+					#ok, just add whatever the category is to the record.
+					FiltersToAdd.append(filterstringLower)
+
 				continue
 	
 
 
 	words = str(program['Title']).lower().split()
+
 	if 'news' in words :
+
 		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+
 		invalidPreviousShown = True
+
 	else:
 		if	('sports' in words):
 			FiltersToAdd.append("sports")
@@ -228,25 +246,28 @@ def ProcessProgram(xml, program, guideName):
 	FoundMovie = False
 
 	if not 'EpisodeNumber' in program:
+
 		for xfilter in FiltersToAdd:
+
 			filter = str(xfilter).lower()
+
 			if (filter == "movie" or filter == "movies"):
-				print ("-------------------------->Found MOVIE")
+
+				ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
+
 				FoundMovie = True
 
 
-	if FoundMovie:
-		ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-
-
 	for xfilter in FiltersToAdd:
+
 		filter = str(xfilter).lower()
-		if (FoundMovie and (str(filter).lower() == "series")):
-			print("--------------------------->Skipping Series Tag!!!")
+
+		if ( FoundMovie and ( (str(filter).lower() == "series") or (FoundMovie and (str(filter).lower() == "movie") ) ) ):
+
 			continue
-		if (FoundMovie and (str(filter).lower() == "movie")):
-			continue
+
 		else:
+
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
 	if 'EpisodeNumber' in program:
@@ -264,6 +285,7 @@ def ProcessProgram(xml, program, guideName):
 	else:
 		if (not FoundMovie):
 			#print ("-------------> Series")
+			ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 
