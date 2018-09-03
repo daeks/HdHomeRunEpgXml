@@ -82,6 +82,10 @@ def get_utc_offset_str():
 
     return utc_offset_str
 
+
+def HdHomeRunTimeStampToDate(hdTimeStamp):
+	return datetime.fromtimestamp(hdTimeStamp - (86400 * 365))
+
 def ProcessProgram(xml, program, guideName):
 
 	WriteLog ("Processing Show: " + program['Title'])
@@ -93,10 +97,12 @@ def ProcessProgram(xml, program, guideName):
 	#	 channel=channel['GuideName'])
 
 	#set the start date and time from the feed
-	xmlProgram.set("start", datetime.fromtimestamp(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+	# xmlProgram.set("start", datetime.fromtimestamp(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+	xmlProgram.set("start", HdHomeRunTimeStampToDate(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#set the end date and time from the feed
-	xmlProgram.set("stop", datetime.fromtimestamp(program['EndTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+	# xmlProgram.set("stop", datetime.fromtimestamp(program['EndTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+	xmlProgram.set("stop", HdHomeRunTimeStampToDate(program['EndTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#Title
 	ET.SubElement(xmlProgram, "title", lang="en").text = program['Title']
@@ -252,7 +258,7 @@ def ProcessProgram(xml, program, guideName):
 		season = parts[0].replace("S","")
 		episode = parts[1]
 		#Assign the fake xml version
-		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + " . " + episode  + " . 0/1")
+		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (season + "." + episode  + ".0/1")
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 	else:
@@ -269,7 +275,7 @@ def ProcessProgram(xml, program, guideName):
 		#so if it's in the future I no longer add it.
 		if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
 			#The 86400 is because the HdHomeRun feed is off by a day, this fixes that.
-			ET.SubElement(xmlProgram, "previously-shown", start = datetime.fromtimestamp(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+			ET.SubElement(xmlProgram, "previously-shown", start = HdHomeRunTimeStampToDate(program['OriginalAirdate']  ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 
 	#Return the endtime so we know where to start from on next loop.
 	return program['EndTime']
@@ -406,12 +412,14 @@ def ClearLog():
 	
 
 def DateTimeToEpisode(startDt):
-	time_now = datetime.fromtimestamp(startDt)
+
+	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
 	episode = time_now.strftime('%m%d%H%M')
-	return (season + " . " + episode  + " . 0/1")
+	return (season + "." + episode  + ". 0/1")
+
 def DateTimeToEpisodeFriendly(startDt):
-	time_now = datetime.fromtimestamp(startDt)
+	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
 	episode = time_now.strftime('%m%d%H%M')
 	return ("S" + season + "E" + episode)
