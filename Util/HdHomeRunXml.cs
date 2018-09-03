@@ -51,8 +51,8 @@ namespace HdHomeRunEpgXml.Util
         {
 
             var dt = Time.UnixTimeStampToDateTime(startDt);
-            string season = dt.ToString("yyyy");
-            string episode = dt.ToString("MMddhhmm");
+            string season = (int.Parse(dt.ToString("yyyy")) - 1).ToString();
+            string episode = (int.Parse(dt.ToString("MMddhhmm")) - 1).ToString();
             return season + " . " + episode + " . 0/1";
         }
 
@@ -205,9 +205,9 @@ namespace HdHomeRunEpgXml.Util
             {
                 eleProgram.AppendChild(CreateElement(doc, "episode-num", program.EpisodeNumber, "system", "onscreen"));
                 var parts = program.EpisodeNumber.Split('E');
-                string season = parts[0].Substring(1);
-                string episode = parts[1];
-                string v = season + " . " + episode + " . 0/1";
+                string season = (int.Parse(parts[0].Substring(1).Trim()) - 1).ToString();
+                string episode = (int.Parse(parts[1].Trim()) - 1).ToString();
+                string v = season + "." + episode + ". 0/1";
                 eleProgram.AppendChild(CreateElement(doc, "episode-num", v, "system", "xmltv_ns"));
                 //Add a category of series.
                 eleProgram.AppendChild(CreateElement(doc, "category", "series"));
