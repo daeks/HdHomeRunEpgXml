@@ -38,6 +38,12 @@ Steps to use:
 * Run `docker run --rm hdhomerunepgxml > /[directory]/hdhomerun.xml` where [directory] is the place you want the file stored.
 You can schedule the docker run command above as a cronjob.
 
+Note:  To update the docker image when there is an update to the code you need to do the following
+
+* run 'docker build --no-cache -t hdhomerunepgxml .' (again, don't miss the ".")
+
+This will re-pull the updates and update the docker image.   To brute force this you could put in a cron job to run this every few days until code updates stabalize, or run it manually when you see an update you want is posted.
+
 ## Running with Windows
 * Download from the latest release from githib page. 
 * You will see Release.MM.DD.YYYY.R.zip. Unzip that onto your system in whatever folder you want. 
