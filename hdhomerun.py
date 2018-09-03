@@ -84,7 +84,7 @@ def get_utc_offset_str():
 
 
 def HdHomeRunTimeStampToDate(hdTimeStamp):
-	return datetime.fromtimestamp(hdTimeStamp - (86400 * 365))
+	return datetime.fromtimestamp(hdTimeStamp)# - (86400 * 365))
 
 def ProcessProgram(xml, program, guideName):
 
