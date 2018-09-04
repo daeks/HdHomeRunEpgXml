@@ -124,17 +124,28 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement( xmlAudio, "stereo").text = "stereo"
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")	
 
-	imdbData =  FindTitle(program['Title'])
 	FoundMovie = False
+
+	#Well... if it has an epidsode title it must be a series!
+	if 'EpisodeTitle' in program or 'EpisodeNumber' in program:
+
+		imdbData = FindSeriesTitle(program['Title'])
+		
+	else:
+
+		imdbData =  FindMovieTitle(program['Title'])
+		FoundMovie = True
+	
+	
 
 
 	if (not imdbData == 0):
 
 		WriteLog ("Chk: " + program['Title'] + "--->" + str( imdbData[0] ) )
 
-		if ( str( imdbData[0] ) == "movie" ):
+		# if ( str( imdbData[0] ) == "movie" ):
 
-			FoundMovie = True
+		# 	FoundMovie = True
 			
 
 		FiltersToAdd.append( str( imdbData[0] ) )		
@@ -179,16 +190,16 @@ def ProcessProgram(xml, program, guideName):
 					if (not "movie" in FiltersToAdd and not "series" in FiltersToAdd):
 						
 						#If it has an episode # than it can't be a movie
-						if not 'EpisodeNumber' in program:
+						if not 'EpisodeTitle' in program:
 
 							#Ok, we have to go with what HdHomeRun says, no option.
 							FiltersToAdd.append("movie")
-							WriteLog ("Chk: " + program['Title'] + "---> Movie")
+							#WriteLog ("Chk: " + program['Title'] + "---> Movie")
 					
 						else:
 							
 							FiltersToAdd.append("series")
-							WriteLog ("Chk: " + program['Title'] + "---> Series")
+							#WriteLog ("Chk: " + program['Title'] + "---> Series")
 
 				continue
 
@@ -210,70 +221,70 @@ def ProcessProgram(xml, program, guideName):
 
 		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
 
-		WriteLog ("Chk: " + program['Title'] + "---> News")
+		#WriteLog ("Chk: " + program['Title'] + "---> News")
 
 		invalidPreviousShown = True
 
 	else:
 		if	('sports' in words):
 			FiltersToAdd.append("sports")
-			WriteLog ("Chk: " + program['Title'] + "---> Sports")
+			#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 		else:
 			if ('football' in words):
 				FiltersToAdd.append("sports")
-				WriteLog ("Chk: " + program['Title'] + "---> Sports")
+				#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 			else:
 				if ('soccer' in words):
 					FiltersToAdd.append("sports")
-					WriteLog ("Chk: " + program['Title'] + "---> Sports")
+					#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 				else:
 					if ('baseball' in words):
 						FiltersToAdd.append("sports")
-						WriteLog ("Chk: " + program['Title'] + "---> Sports")
+						#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 					else:
 						if ('dance' in words):
 							FiltersToAdd.append("sports")
-							WriteLog ("Chk: " + program['Title'] + "---> Sports")
+							#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 						else:
 							if ('dancing' in words):
 								FiltersToAdd.append("sports")
-								WriteLog ("Chk: " + program['Title'] + "---> Sports")
+								#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 							else:
 								if ('olympics' in words):
 									FiltersToAdd.append("sports")
-									WriteLog ("Chk: " + program['Title'] + "---> Sports")
+									#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 								else:
 									if ('cycling' in words):
 										FiltersToAdd.append("sports")
-										WriteLog ("Chk: " + program['Title'] + "---> Sports")
+										#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 									else:
 										if ('billiards' in words):
 											FiltersToAdd.append("sports")
-											WriteLog ("Chk: " + program['Title'] + "---> Sports")
+											#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 										else:
 											if ('basketball' in words):
 												FiltersToAdd.append("sports")
-												WriteLog ("Chk: " + program['Title'] + "---> Sports")
+												#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 											else:
 												if ('athletics' in words):
 													FiltersToAdd.append("sports")
-													WriteLog ("Chk: " + program['Title'] + "---> Sports")
+													#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 												else:
 													if ('boxing' in words):
 														FiltersToAdd.append("sports")
-														WriteLog ("Chk: " + program['Title'] + "---> Sports")
+														#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 													else:
 														if ('cricket' in words):
 															FiltersToAdd.append("sports")
-															WriteLog ("Chk: " + program['Title'] + "---> Sports")
+															#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 														else:
 															if ('fencing' in words): 
 																FiltersToAdd.append("sports")
-																WriteLog ("Chk: " + program['Title'] + "---> Sports")
+																#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 
 	
 
-	if not 'EpisodeNumber' in program:
+	if not 'EpisodeTitle' in program:
 
 		for xfilter in FiltersToAdd:
 
@@ -285,7 +296,7 @@ def ProcessProgram(xml, program, guideName):
 
 				FoundMovie = True
 
-				WriteLog ("OFFICIAL: " + program['Title'] + "---> MOVIE")
+				#WriteLog ("OFFICIAL: " + program['Title'] + "---> MOVIE")
 
 
 	for xfilter in FiltersToAdd:
@@ -318,7 +329,7 @@ def ProcessProgram(xml, program, guideName):
 		#set the category flag to series
 		ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 
-		WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
+		#WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
 	
 	else:
 	
@@ -330,7 +341,7 @@ def ProcessProgram(xml, program, guideName):
 			
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
 
-			WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
+			#WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
@@ -584,7 +595,7 @@ def LoadImdb():
 										TitleType = "series"
 									else:
 										if (row["titleType"] == "tvEpisode"):
-											continue
+											TitleType = "series"
 										else:
 											if (row["titleType"] == "tvMiniSeries"):
 												TitleType = "series"	
@@ -598,8 +609,10 @@ def LoadImdb():
 			if "titleType" in row:
 				dTitleType = row["titleType"]
 
-
-			MovieList[ShowTitle] = [TitleType, genres, dTitleType ] 
+			if (TitleType == "movie"):
+				MovieList[ShowTitle] = [TitleType, genres, dTitleType ] 
+			else:
+				SeriesList[ShowTitle] = [TitleType, genres, dTitleType ] 
 			
 			# if (str( row["titleType"]) not in ITypes ):
 			# 	ITypes[str( row["titleType"])] = 1
@@ -616,15 +629,20 @@ def LoadImdb():
 
 
 
-def FindTitle(showTitle):
-	#print ("Looking for: " + showTitle)
+def FindMovieTitle(showTitle):
 	newShowTitle = ''.join( c for c in  str(showTitle).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" 	)
 	if (newShowTitle in MovieList):
-		#print(MovieList[newShowTitle])
 		return MovieList[newShowTitle]
 	return 0
 
+def FindSeriesTitle(showTitle):
+	newShowTitle = ''.join( c for c in  str(showTitle).lower() if  c not in "!@#$%^&&*(()_-+={}[]|\\:;<,>>?/ .`'" 	)
+	if (newShowTitle in SeriesList):
+		return SeriesList[newShowTitle]
+	return 0
+
 MovieList = {}
+SeriesList = {}
 
 def printIt(reader):
 	for row in reader:
