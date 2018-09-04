@@ -333,7 +333,7 @@ def ProcessProgram(xml, program, guideName):
 	if (IsSeries == True):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
 		ET.SubElement(xmlProgram, "category",lang="en").text = "SERIESCHECK"
-		if (IsSports==False and IsNews == False)
+		if (IsSports==False and IsNews == False):
 			ET.SubElement(xmlProgram, "category",lang="en").text = "shows"
 			ET.SubElement(xmlProgram, "category",lang="en").text = "show"
 			ET.SubElement(xmlProgram, "category",lang="en").text = "episode"
