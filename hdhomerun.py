@@ -218,13 +218,21 @@ def ProcessProgram(xml, program, guideName):
 	#basic checks on it for news and sports.
 	words = str(program['Title']).lower().split()
 
-	if 'news' in words :
+	if ('news' in words) or ('cnn' in words) or ('msnbc' in words) or ('weather' in words) or ('newsline' in words):
+
+		if ('movie' in FiltersToAdd):
+			FiltersToAdd.remove('movie')
+		if ('movies' in FiltersToAdd):
+			FiltersToAdd.remove('movies')
+
 
 		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
 
 		#WriteLog ("Chk: " + program['Title'] + "---> News")
 
 		invalidPreviousShown = True
+
 
 	else:
 		if	('sports' in words):
