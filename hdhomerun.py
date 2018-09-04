@@ -130,12 +130,12 @@ def ProcessProgram(xml, program, guideName):
 	if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
 
 		imdbData = FindSeriesTitle(program['Title'])
-		WriteLog("Series")
+		#WriteLog("Series")
 	else:
 
 		imdbData =  FindMovieTitle(program['Title'])
 		FoundMovie = True
-		WriteLog("Movie")
+		#WriteLog("Movie")
 	
 	
 
