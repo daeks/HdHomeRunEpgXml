@@ -136,8 +136,14 @@ def ProcessProgram(xml, program, guideName):
 		IsMovie = False
 	else:
 		imdbData =  FindMovieTitle(program['Title'])
-		IsMovie = True
-		IsSeries = False
+
+		if (imdbData != 0):
+			if (imdbData[0] == "movie")
+				IsMovie = True
+				IsSeries = False
+			else:
+				IsSeries = True
+				IsMovie = False
 	
 	#We will split the words of the title up, and do some
 	#basic checks on it for news and sports.
@@ -238,7 +244,7 @@ def ProcessProgram(xml, program, guideName):
 	
 
 
-	if (not imdbData == 0):
+	if (imdbData != 0):
 		
 		WriteLog ("Chk: " + program['Title'] + "--->" + str( imdbData[0] ) )
 
@@ -254,16 +260,14 @@ def ProcessProgram(xml, program, guideName):
 
 		for xword in words:
 			word = str(xword).lower().strip()
-			if (word and not word == "\\N"):
-				if (word != "movie" and word != "news" and word !="series" and word !="sports"):
-					if (word not in FiltersToAdd ):
-						FiltersToAdd.append(word)
-
-		word = str(imdbData[2]).strip().lower()
-		if (word and not word == "\\N"):
-			if (word != "movie" and word != "news" and word !="series" and word !="sports"):
+			if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 				if (word not in FiltersToAdd ):
 					FiltersToAdd.append(word)
+
+		word = str(imdbData[2]).strip().lower()
+		if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+			if (word not in FiltersToAdd ):
+				FiltersToAdd.append(word)
 
 	else:
 
@@ -300,10 +304,9 @@ def ProcessProgram(xml, program, guideName):
 						else:
 							IsMovie = True
 			else:
-				if (word and not word == "\\N"):
-					if (word != "movie" and word != "news" and word !="series" and word !="sports"):
-						if (word not in FiltersToAdd ):
-							FiltersToAdd.append( word )
+				if ( word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+					if (word not in FiltersToAdd ):
+						FiltersToAdd.append( word )
 				
 
 	if (IsNews):
@@ -330,15 +333,17 @@ def ProcessProgram(xml, program, guideName):
 	if (IsSeries == True):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
 		ET.SubElement(xmlProgram, "category",lang="en").text = "SERIESCHECK"
+		if (IsSports==False and IsNews == False)
+			ET.SubElement(xmlProgram, "category",lang="en").text = "shows"
+			ET.SubElement(xmlProgram, "category",lang="en").text = "show"
+			ET.SubElement(xmlProgram, "category",lang="en").text = "episode"
 
 	
 
 	for xfilter in FiltersToAdd:
 		word = str(xfilter).strip().lower()
-		if (word and not word == "\\N"):
-			if (word != "movie" and word != "news" and word !="series" and word !="sports"):
-				if (word not in FiltersToAdd ):
-					ET.SubElement(xmlProgram, "category",lang="en").text = word
+		if (word == "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+			ET.SubElement(xmlProgram, "category",lang="en").text = word
 
 
 
