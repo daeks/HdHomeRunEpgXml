@@ -130,7 +130,7 @@ def ProcessProgram(xml, program, guideName):
 	IsSports = False
 
 	#Well... if it has an epidsode title it must be a series!
-	if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
+	if ('EpisodeNumber' in program):
 		imdbData = FindSeriesTitle(program['Title'])
 		IsSeries = True
 		IsMovie = False
@@ -240,7 +240,16 @@ def ProcessProgram(xml, program, guideName):
 																			IsSports=True
 																			IsMovie = False
 																			IsSeries = True
-																
+																		else:
+																			if ('tennis' in words): 
+																				IsSports=True
+																				IsMovie = False
+																				IsSeries = True																			
+																			else:
+																				if ('sportscenter' in words): 
+																					IsSports=True
+																					IsMovie = False
+																					IsSeries = True																
 	
 
 
@@ -299,7 +308,7 @@ def ProcessProgram(xml, program, guideName):
 				if (not ( IsSports or IsNews )):
 					#Does the movie not exist in the IMDB database?
 					if ( imdbData == 0 ):
-						if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
+						if ('EpisodeNumber' in program):
 							IsSeries = True
 							IsMovie = False
 						else:
@@ -314,7 +323,7 @@ def ProcessProgram(xml, program, guideName):
 	if (IsNews):
 		invalidPreviousShown = True
 
-	if ('EpisodeTitle' in program or 'EpisodeNumber' in program or IsNews or IsSeries):
+	if ('EpisodeNumber' in program or IsNews or IsSeries):
 		IsMovie = False
 		IsSeries = True
 	
