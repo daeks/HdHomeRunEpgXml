@@ -160,7 +160,7 @@ def ProcessProgram(xml, program, guideName):
 			IsMovie = False
 			IsSeries = True
 		else:
-			if ('olympics' in words) or ('cycling' in words) or ('billiards' in words) ('basketball' in words) or ('athletics' in words) or ('boxing' in words):
+			if ('olympics' in words) or ('cycling' in words) or ('billiards' in words) or ('basketball' in words) or ('athletics' in words) or ('boxing' in words):
 				IsSports=True
 				IsMovie = False
 				IsSeries = True
