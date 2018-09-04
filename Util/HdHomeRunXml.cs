@@ -109,6 +109,7 @@ namespace HdHomeRunEpgXml.Util
 
 
             bool invalidPreviousShown = false;
+            string programRating = string.Empty;
             List<string> filtersToAdd = new List<string>();
             var imdbData = Program.FindTitle(program.Title);
 
@@ -122,6 +123,8 @@ namespace HdHomeRunEpgXml.Util
 
                 if (!filtersToAdd.Contains(imdbData.TitleType.ToLower()))
                     filtersToAdd.Add(imdbData.TitleType.ToLower());
+                
+                programRating = Program.FindRating(imdbData.TitleID);
             }
 
             if (program.Filter != null && program.Filter.Count > 0)
@@ -240,6 +243,17 @@ namespace HdHomeRunEpgXml.Util
             else
             {
                 Console.WriteLine("Previous Shown in FUTURE....  Watch out Marty McFly!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            }
+            
+            if(!string.IsNullOrEmpty(programRating))
+            {
+                var eleRating = doc.CreateElement(string.Empty, "rating", string.Empty);
+                eleRating.SetAttribute("system", "IMDB");
+                var eleRatingChild = doc.CreateElement(string.Empty, "value", string.Empty);
+                var eleRatingChildText = doc.CreateTextNode(programRating);
+                eleRatingChild.AppendChild(eleRatingChildText);
+                eleRating.AppendChild(eleRatingChild);
+                eleProgram.AppendChild(eleRating);
             }
 
             return eleProgram;
