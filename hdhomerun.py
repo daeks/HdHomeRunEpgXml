@@ -127,14 +127,15 @@ def ProcessProgram(xml, program, guideName):
 	FoundMovie = False
 
 	#Well... if it has an epidsode title it must be a series!
-	if 'EpisodeTitle' in program or 'EpisodeNumber' in program:
+	if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
 
 		imdbData = FindSeriesTitle(program['Title'])
-		
+		WriteLog("Series")
 	else:
 
 		imdbData =  FindMovieTitle(program['Title'])
 		FoundMovie = True
+		WriteLog("Movie")
 	
 	
 
@@ -280,6 +281,15 @@ def ProcessProgram(xml, program, guideName):
 														else:
 															if ('fencing' in words): 
 																FiltersToAdd.append("sports")
+															else:
+																if ('pga' in words): 
+																	FiltersToAdd.append("sports")
+																else:
+																	if ('wrestling' in words): 
+																		FiltersToAdd.append("sports")
+																	else:
+																		if ('wwe' in words): 
+																			FiltersToAdd.append("sports")
 																#WriteLog ("Chk: " + program['Title'] + "---> Sports")
 
 	
