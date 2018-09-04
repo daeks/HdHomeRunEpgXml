@@ -257,6 +257,7 @@ def ProcessProgram(xml, program, guideName):
 			IsSeries = True
 
 		words = str( imdbData[1] ).lower().split( ',' )
+		
 
 		for xword in words:
 			word = str(xword).lower().strip()
@@ -307,6 +308,7 @@ def ProcessProgram(xml, program, guideName):
 				if ( word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 					if (word not in FiltersToAdd ):
 						FiltersToAdd.append( word )
+						
 				
 
 	if (IsNews):
@@ -342,7 +344,7 @@ def ProcessProgram(xml, program, guideName):
 
 	for xfilter in FiltersToAdd:
 		word = str(xfilter).strip().lower()
-		if (word == "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+		if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 			ET.SubElement(xmlProgram, "category",lang="en").text = word
 
 
