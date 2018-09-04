@@ -297,7 +297,7 @@ def ProcessProgram(xml, program, guideName):
 		else:
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
-	if ('EpisodeNumber' in program) or ('EpisodeTitle' in program):
+	if ('EpisodeNumber' in program) :
 
 		#add the friendly display
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
@@ -319,7 +319,7 @@ def ProcessProgram(xml, program, guideName):
 	
 	else:
 	
-		if (not FoundMovie):
+		if (not FoundMovie or ('EpisodeTitle' in program)):
 	
 			ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 
