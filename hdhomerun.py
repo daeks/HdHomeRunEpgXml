@@ -281,9 +281,18 @@ def ProcessProgram(xml, program, guideName):
 	if ('EpisodeTitle' not in program):
 		for xfilter in FiltersToAdd:
 			filter = str(xfilter).lower()
-			if ( (filter == "movie" or filter == "movies" ) and ( not (IsSports or IsNews) ) ):
-				ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-				FoundMovie = True
+			if (filter == "movie" or filter == "movies" ):
+				if (IsSports or IsNews) :
+					if ("movie" in FiltersToAdd):
+						FiltersToAdd.remove("movie")
+					if ("movies" in FiltersToAdd):			
+						FiltersToAdd.remove("movies")
+					if ("series" not in FiltersToAdd):
+						FiltersToAdd.append("series")
+				else:
+					ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
+					ET.SubElement(xmlProgram, "category",lang="en").text = "MOVIECHECK"
+					FoundMovie = True
 	else:
 		if ("movie" in FiltersToAdd):
 			FiltersToAdd.remove("movie")
@@ -292,10 +301,14 @@ def ProcessProgram(xml, program, guideName):
 
 	for xfilter in FiltersToAdd:
 		filter = str(xfilter).lower()
-		if  ( (str(filter) == "series") or (str(filter) == "movie") )  :
+		if  (str(filter) == "movie"):
 			continue
 		else:
-			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
+			if (str(filter) == "series" and not FoundMovie):
+				ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+				ET.SubElement(xmlProgram, "category",lang="en").text = "SERIESCHECK"
+			else:
+				ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
 	if ('EpisodeNumber' in program) :
 
@@ -319,15 +332,13 @@ def ProcessProgram(xml, program, guideName):
 	
 	else:
 	
-		if (not FoundMovie or ('EpisodeTitle' in program)):
+		if (not FoundMovie or ('EpisodeTitle' in program) or IsNews or IsSports):
 	
 			ET.SubElement(xmlProgram, "category", lang="en" ).text = "series"
 
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 			
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
-
-			#WriteLog ("OFFICIAL: " + program['Title'] + "---> SERIES")
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
