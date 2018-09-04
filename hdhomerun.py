@@ -155,103 +155,20 @@ def ProcessProgram(xml, program, guideName):
 		IsSeries = True
 		invalidPreviousShown = True
 	else:
-		if	('sports' in words):
+		if	('sports' in words) or ('football' in words) or ('soccer' in words) or ('baseball' in words) or ('dance' in words) or ('dancing' in words):
 			IsSports=True
 			IsMovie = False
 			IsSeries = True
 		else:
-			if ('football' in words):
+			if ('olympics' in words) or ('cycling' in words) or ('billiards' in words) ('basketball' in words) or ('athletics' in words) or ('boxing' in words):
 				IsSports=True
 				IsMovie = False
 				IsSeries = True
 			else:
-				if ('soccer' in words):
+				if ('cricket' in words) or ('fencing' in words) or ('pga' in words) or ('wrestling' in words) or ('wwe' in words) or ('tennis' in words) or ('sportscenter' in words):
 					IsSports=True
 					IsMovie = False
-					IsSeries = True
-				else:
-					if ('baseball' in words):
-						IsSports=True
-						IsMovie = False
-						IsSeries = True
-					else:
-						if ('dance' in words):
-							IsSports=True
-							IsMovie = False
-							IsSeries = True
-						else:
-							if ('dancing' in words):
-								IsSports=True
-								IsMovie = False
-								IsSeries = True
-							else:
-								if ('olympics' in words):
-									IsSports=True
-									IsMovie = False
-									IsSeries = True
-
-								else:
-									if ('cycling' in words):
-										IsSports=True
-										IsMovie = False
-										IsSeries = True
-									else:
-										if ('billiards' in words):
-											IsSports=True
-											IsMovie = False
-											IsSeries = True
-										else:
-											if ('basketball' in words):
-												IsSports=True
-												IsMovie = False
-												IsSeries = True
-											else:
-												if ('athletics' in words):
-													IsSports=True
-													IsMovie = False
-													IsSeries = True
-												else:
-													if ('boxing' in words):
-														IsSports=True
-														IsMovie = False
-														IsSeries = True
-													else:
-														if ('cricket' in words):
-															IsSports=True
-															IsMovie = False
-															IsSeries = True															
-														else:
-															if ('fencing' in words): 
-																IsSports=True
-																IsMovie = False
-																IsSeries = True
-															else:
-																if ('pga' in words): 
-																	IsSports=True
-																	IsMovie = False
-																	IsSeries = True
-																else:
-																	if ('wrestling' in words): 
-																		IsSports=True
-																		IsMovie = False
-																		IsSeries = True
-																	else:
-																		if ('wwe' in words): 
-																			IsSports=True
-																			IsMovie = False
-																			IsSeries = True
-																		else:
-																			if ('tennis' in words): 
-																				IsSports=True
-																				IsMovie = False
-																				IsSeries = True																			
-																			else:
-																				if ('sportscenter' in words): 
-																					IsSports=True
-																					IsMovie = False
-																					IsSeries = True																
-	
-
+					IsSeries = True															
 
 	if (imdbData != 0):
 		
@@ -267,15 +184,14 @@ def ProcessProgram(xml, program, guideName):
 
 		words = str( imdbData[1] ).lower().split( ',' )
 		
-
 		for xword in words:
 			word = str(xword).lower().strip()
-			if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+			if (word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 				if (word not in FiltersToAdd ):
 					FiltersToAdd.append(word)
 
 		word = str(imdbData[2]).strip().lower()
-		if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+		if (word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 			if (word not in FiltersToAdd ):
 				FiltersToAdd.append(word)
 
@@ -314,11 +230,9 @@ def ProcessProgram(xml, program, guideName):
 						else:
 							IsMovie = True
 			else:
-				if ( word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+				if ( word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 					if (word not in FiltersToAdd ):
 						FiltersToAdd.append( word )
-						
-				
 
 	if (IsNews):
 		invalidPreviousShown = True
@@ -329,31 +243,26 @@ def ProcessProgram(xml, program, guideName):
 	
 	if (IsMovie == True):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-		ET.SubElement(xmlProgram, "category",lang="en").text = "MOVIECHECK"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "M0VIECHECK"
 	
 	if (IsNews):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
-		ET.SubElement(xmlProgram, "category",lang="en").text = "NEWSCHECK"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "N3WSCHECK"
 		IsSeries = True
 	
 	if (IsSports):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "sports"
-		ET.SubElement(xmlProgram, "category",lang="en").text = "SPORTSSCHECK"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "SP0RTSCHECK"
 		IsSeries = True
 
 	if (IsSeries == True):
 		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-		ET.SubElement(xmlProgram, "category",lang="en").text = "SERIESCHECK"
-		if (IsSports==False and IsNews == False):
-			ET.SubElement(xmlProgram, "category",lang="en").text = "shows"
-			ET.SubElement(xmlProgram, "category",lang="en").text = "show"
-			ET.SubElement(xmlProgram, "category",lang="en").text = "episode"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "S3RIESCHECK"
 
-	
 
 	for xfilter in FiltersToAdd:
 		word = str(xfilter).strip().lower()
-		if (word != "\\N" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+		if (word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 			ET.SubElement(xmlProgram, "category",lang="en").text = word
 
 
