@@ -125,6 +125,8 @@ def ProcessProgram(xml, program, guideName):
 	ET.SubElement(xmlProgram, "subtitles", type="teletext")	
 
 	FoundMovie = False
+	IsNews = False
+	IsSports = False
 
 	#Well... if it has an epidsode title it must be a series!
 	if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
@@ -137,19 +139,93 @@ def ProcessProgram(xml, program, guideName):
 		FoundMovie = True
 		#WriteLog("Movie")
 	
+	#We will split the words of the title up, and do some
+	#basic checks on it for news and sports.
+	words = str(program['Title']).lower().split()
+
+	if ('news' in words) or ('cnn' in words) or ('msnbc' in words) or ('weather' in words) or ('newsline' in words):
+		IsNews=True
+		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
+		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
+		invalidPreviousShown = True
+	else:
+		if	('sports' in words):
+			FiltersToAdd.append("sports")
+			IsSports=True
+		else:
+			if ('football' in words):
+				FiltersToAdd.append("sports")
+				IsSports=True
+			else:
+				if ('soccer' in words):
+					FiltersToAdd.append("sports")
+					IsSports=True
+				else:
+					if ('baseball' in words):
+						FiltersToAdd.append("sports")
+						IsSports=True
+					else:
+						if ('dance' in words):
+							FiltersToAdd.append("sports")
+							IsSports=True
+						else:
+							if ('dancing' in words):
+								FiltersToAdd.append("sports")
+								IsSports=True
+							else:
+								if ('olympics' in words):
+									FiltersToAdd.append("sports")
+									IsSports=True
+								else:
+									if ('cycling' in words):
+										FiltersToAdd.append("sports")
+										IsSports=True
+									else:
+										if ('billiards' in words):
+											FiltersToAdd.append("sports")
+											IsSports=True
+										else:
+											if ('basketball' in words):
+												FiltersToAdd.append("sports")
+												IsSports=True
+											else:
+												if ('athletics' in words):
+													FiltersToAdd.append("sports")
+													IsSports=True
+												else:
+													if ('boxing' in words):
+														FiltersToAdd.append("sports")
+														IsSports=True
+													else:
+														if ('cricket' in words):
+															FiltersToAdd.append("sports")
+															IsSports=True
+														else:
+															if ('fencing' in words): 
+																FiltersToAdd.append("sports")
+																IsSports=True
+															else:
+																if ('pga' in words): 
+																	FiltersToAdd.append("sports")
+																	IsSports=True
+																else:
+																	if ('wrestling' in words): 
+																		FiltersToAdd.append("sports")
+																		IsSports=True
+																	else:
+																		if ('wwe' in words): 
+																			FiltersToAdd.append("sports")
+																			IsSports=True
+																
 	
 
 
 	if (not imdbData == 0):
-
+		
 		WriteLog ("Chk: " + program['Title'] + "--->" + str( imdbData[0] ) )
 
-		# if ( str( imdbData[0] ) == "movie" ):
-
-		# 	FoundMovie = True
-			
-
-		FiltersToAdd.append( str( imdbData[0] ) )		
+		if (not (IsSports or IsNews)):
+			FiltersToAdd.append( str( imdbData[0] ) )		
 
 		words = str( imdbData[1] ).lower().split( ',' )
 
@@ -179,157 +255,49 @@ def ProcessProgram(xml, program, guideName):
 			if (filterstringLower in FiltersToAdd):
 				continue
 
-			if (filterstringLower == "news"):
-				invalidPreviousShown = True
-
 			#Does HdHomeRun think it is a movie?
-			if ( filterstringLower == "movies" or filterstringLower == "movie"):
+			if ( filterstringLower == "movies" or filterstringLower == "movie" ):
 				
-				#Does the movie not exist in the IMDB database?
-				if ( imdbData == 0 ):
-					
-					if (not "movie" in FiltersToAdd and not "series" in FiltersToAdd):
-						
-						#If it has an episode # than it can't be a movie
-						if not 'EpisodeTitle' in program:
-
-							#Ok, we have to go with what HdHomeRun says, no option.
-							FiltersToAdd.append("movie")
-							#WriteLog ("Chk: " + program['Title'] + "---> Movie")
-					
-						else:
-							
-							FiltersToAdd.append("series")
-							#WriteLog ("Chk: " + program['Title'] + "---> Series")
-
+				if (not (IsSports or IsNews)):
+					#Does the movie not exist in the IMDB database?
+					if ( imdbData == 0 ):
+						if (not "movie" in FiltersToAdd and not "series" in FiltersToAdd):
+							#If it has an episode # than it can't be a movie
+							if ('EpisodeTitle' in program) or ('EpisodeNumber' in program):
+								#Ok, we have to go with what HdHomeRun says, no option.
+								FiltersToAdd.append("series")
+							else:
+								FiltersToAdd.append("movie")
 				continue
-
 			else:
-				
 				if ( not filterstringLower in FiltersToAdd ):
-					
 					#ok, just add whatever the category is to the record.
 					FiltersToAdd.append( filterstringLower )
-
 				continue
-	
 
-	#We will split the words of the title up, and do some
-	#basic checks on it for news and sports.
-	words = str(program['Title']).lower().split()
-
-	if ('news' in words) or ('cnn' in words) or ('msnbc' in words) or ('weather' in words) or ('newsline' in words):
-
-		if ('movie' in FiltersToAdd):
-			FiltersToAdd.remove('movie')
-		if ('movies' in FiltersToAdd):
-			FiltersToAdd.remove('movies')
-
-
-		ET.SubElement(xmlProgram, "category",lang="en").text = "news"
-		ET.SubElement(xmlProgram, "category",lang="en").text = "series"
-
-		#WriteLog ("Chk: " + program['Title'] + "---> News")
-
+	if (IsNews):
 		invalidPreviousShown = True
 
-
-	else:
-		if	('sports' in words):
-			FiltersToAdd.append("sports")
-			#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-		else:
-			if ('football' in words):
-				FiltersToAdd.append("sports")
-				#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-			else:
-				if ('soccer' in words):
-					FiltersToAdd.append("sports")
-					#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-				else:
-					if ('baseball' in words):
-						FiltersToAdd.append("sports")
-						#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-					else:
-						if ('dance' in words):
-							FiltersToAdd.append("sports")
-							#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-						else:
-							if ('dancing' in words):
-								FiltersToAdd.append("sports")
-								#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-							else:
-								if ('olympics' in words):
-									FiltersToAdd.append("sports")
-									#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-								else:
-									if ('cycling' in words):
-										FiltersToAdd.append("sports")
-										#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-									else:
-										if ('billiards' in words):
-											FiltersToAdd.append("sports")
-											#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-										else:
-											if ('basketball' in words):
-												FiltersToAdd.append("sports")
-												#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-											else:
-												if ('athletics' in words):
-													FiltersToAdd.append("sports")
-													#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-												else:
-													if ('boxing' in words):
-														FiltersToAdd.append("sports")
-														#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-													else:
-														if ('cricket' in words):
-															FiltersToAdd.append("sports")
-															#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-														else:
-															if ('fencing' in words): 
-																FiltersToAdd.append("sports")
-															else:
-																if ('pga' in words): 
-																	FiltersToAdd.append("sports")
-																else:
-																	if ('wrestling' in words): 
-																		FiltersToAdd.append("sports")
-																	else:
-																		if ('wwe' in words): 
-																			FiltersToAdd.append("sports")
-																#WriteLog ("Chk: " + program['Title'] + "---> Sports")
-
-	
-
-	if not 'EpisodeTitle' in program:
-
+	if ('EpisodeTitle' not in program):
 		for xfilter in FiltersToAdd:
-
 			filter = str(xfilter).lower()
-
-			if (filter == "movie" or filter == "movies"):
-
+			if ( (filter == "movie" or filter == "movies" ) and ( not (IsSports or IsNews) ) ):
 				ET.SubElement(xmlProgram, "category",lang="en").text = "movie"
-
 				FoundMovie = True
-
-				#WriteLog ("OFFICIAL: " + program['Title'] + "---> MOVIE")
-
+	else:
+		if ("movie" in FiltersToAdd):
+			FiltersToAdd.remove("movie")
+		if ("movies" in FiltersToAdd):			
+			FiltersToAdd.remove("movies")
 
 	for xfilter in FiltersToAdd:
-
 		filter = str(xfilter).lower()
-
-		if ( FoundMovie and ( (str(filter).lower() == "series") or (FoundMovie and (str(filter).lower() == "movie") ) ) ):
-
+		if  ( (str(filter) == "series") or (str(filter) == "movie") )  :
 			continue
-
 		else:
-
 			ET.SubElement(xmlProgram, "category",lang="en").text = str(filter).lower()
 
-	if 'EpisodeNumber' in program:
+	if ('EpisodeNumber' in program) or ('EpisodeTitle' in program):
 
 		#add the friendly display
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
