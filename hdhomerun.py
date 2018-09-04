@@ -138,7 +138,7 @@ def ProcessProgram(xml, program, guideName):
 		imdbData =  FindMovieTitle(program['Title'])
 
 		if (imdbData != 0):
-			if (imdbData[0] == "movie")
+			if (imdbData[0] == "movie"):
 				IsMovie = True
 				IsSeries = False
 			else:
