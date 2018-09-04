@@ -64,6 +64,7 @@ namespace HdHomeRunEpgXml
         }
 
         public static Dictionary<int, MovieData> TitleIndex = new Dictionary<int, MovieData>();
+        public static Dictionary<string, string> TitleRatings = new Dictionary<string, string>();
 
         public static void DownloadImdb()
         {
@@ -119,6 +120,7 @@ namespace HdHomeRunEpgXml
 
                     TitleIndex.Add(key, new MovieData()
                     {
+                        TitleID = elements[0],
                         TitleType = TitleType,
                         OriginalTitleType = elements[1],
                         Genres = elements[8].Split(',').ToList()
@@ -126,6 +128,42 @@ namespace HdHomeRunEpgXml
                 }
 
             }
+        }
+        
+        public static void DownloadImdbRatings()
+        {
+            if (File.Exists("title.ratings.tsv.gz"))
+                File.Delete("title.ratings.tsv.gz");
+
+            if (File.Exists("title.ratings.tsv"))
+                File.Delete("title.ratings.tsv");
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile("https://datasets.imdbws.com/title.ratings.tsv.gz", "title.ratings.tsv.gz");
+            }
+
+            var info = new FileInfo("title.ratings.tsv.gz");
+
+            Decompress(info);
+            string line;
+            int counter = 0;
+            var file = new StreamReader("title.ratings.tsv");
+            while ((line = file.ReadLine()) != null)
+            {
+                counter = counter + 1;
+                if (string.IsNullOrEmpty(line))
+                    continue;
+                var elements = line.Split('\t');
+
+                if (elements.Length == 3)
+                {
+                    TitleRatings.Add(elements[0], elements[1]);
+                }
+            }
+
+            if (File.Exists("title.ratings.tsv.gz"))
+                File.Delete("title.ratings.tsv.gz");
         }
 
         public static List<char> InvalidChar = new List<char>() { '!', '@', '#', '$', '%', '^', '&', '&', '*', '(', '(', ')', '_', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', ',', '>', '>', '?', '/' };
@@ -136,6 +174,11 @@ namespace HdHomeRunEpgXml
             int key = showTitle.GetHashCode();
 
             return TitleIndex.ContainsKey(key) ? TitleIndex[key] : null;
+        }
+        
+        public static string FindRating(string id)
+        {
+            return TitleRatings.ContainsKey(id) ? TitleRatings[id] : string.Empty;
         }
 
         private static void Main(string[] args)
@@ -164,7 +207,7 @@ namespace HdHomeRunEpgXml
             }
 
             DownloadImdb();
-
+            DownloadImdbRatings();
 
             string selectedDevice = null;
             if (args.Length == 2)
