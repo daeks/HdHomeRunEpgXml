@@ -63,7 +63,8 @@ namespace HdHomeRunEpgXml
             }
         }
 
-        public static Dictionary<int, MovieData> TitleIndex = new Dictionary<int, MovieData>();
+        public static Dictionary<int, MovieData> MovieIndex = new Dictionary<int, MovieData>();
+        public static Dictionary<int, MovieData> SeriesIndex = new Dictionary<int, MovieData>();
         public static Dictionary<string, string> TitleRatings = new Dictionary<string, string>();
 
         public static void DownloadImdb()
@@ -80,7 +81,8 @@ namespace HdHomeRunEpgXml
             }
 
             var info = new FileInfo("title.basics.tsv.gz");
-
+                            int mc = 0;
+                int sc = 0;
             Decompress(info);
             string line;
             int counter = 0;
@@ -88,48 +90,79 @@ namespace HdHomeRunEpgXml
             while ((line = file.ReadLine()) != null)
             {
                 counter = counter + 1;
+
                 if (string.IsNullOrEmpty(line))
                     continue;
+
                 var elements = line.Split('\t');
+
+                string TitleType = "series";
+
+                if (elements[1].Equals("short", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "movie";
+                else if (elements[1].Equals("movie", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "movie";
+                else if (elements[1].Equals("tvMovice", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "movie";
+                else if (elements[1].Equals("tvShort", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "movie";
+                else if (elements[1].Equals("tvSpecial", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "movie";
+                else if (elements[1].Equals("video", StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+                else if (elements[1].Equals("tvSeries", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "series";
+                else if (elements[1].Equals("tvEpisode", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "series";
+                else if (elements[1].Equals("tvMiniSeries", StringComparison.InvariantCultureIgnoreCase))
+                    TitleType = "series";
+                else
+                    continue;
+
                 string showTitle = elements[2].Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+
                 int key = showTitle.GetHashCode();
 
-                if (!TitleIndex.ContainsKey(key))
+
+
+                if (TitleType.Equals("movie", StringComparison.InvariantCultureIgnoreCase) && !MovieIndex.ContainsKey(key))
                 {
-                    string TitleType = "series";
-                    if (elements[1].Equals("short", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("movie", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("tvMovice", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("tvShort", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("tvSpecial", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("video", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "movie";
-                    else if (elements[1].Equals("tvSeries", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "series";
-                    else if (elements[1].Equals("tvEpisode", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "series";
-                    else if (elements[1].Equals("tvMiniSeries", StringComparison.InvariantCultureIgnoreCase))
-                        TitleType = "series";
-                    else
-                        continue;
-
-                    TitleIndex.Add(key, new MovieData()
-                    {
-                        TitleID = elements[0],
-                        TitleType = TitleType,
-                        OriginalTitleType = elements[1],
-                        Genres = elements[8].Split(',').ToList()
-                    });
+                    MovieIndex.Add(key,
+                        new MovieData()
+                        {
+                            Title = elements[2],
+                            TitleID = elements[0],
+                            TitleType = TitleType.ToLower(),
+                            OriginalTitleType = elements[1].ToLower(),
+                            Genres = elements[8].ToLower().Split(',').ToList()
+                        });
                 }
-
+                else if (!SeriesIndex.ContainsKey(key))
+                {
+                    SeriesIndex.Add(key,
+                        new MovieData()
+                        {
+                            Title = elements[2],
+                            TitleID = elements[0],
+                            TitleType = TitleType.ToLower(),
+                            OriginalTitleType = elements[1].ToLower(),
+                            Genres = elements[8].ToLower().Split(',').ToList()
+                        });
+                }
+                else if (TitleType.Equals("movie", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    mc++;
+                }
+                else
+                {
+                    sc++;
+                }
             }
+
+            Console.WriteLine("Total Movie Collisions = " + mc);
+            Console.WriteLine("Total Series Collisions = " + sc);
         }
-        
+
         public static void DownloadImdbRatings()
         {
             if (File.Exists("title.ratings.tsv.gz"))
@@ -168,14 +201,24 @@ namespace HdHomeRunEpgXml
 
         public static List<char> InvalidChar = new List<char>() { '!', '@', '#', '$', '%', '^', '&', '&', '*', '(', '(', ')', '_', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '<', ',', '>', '>', '?', '/' };
 
-        public static MovieData FindTitle(string rshowTitle)
+        public static MovieData FindMovieTitle(string rshowTitle)
         {
             string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+
             int key = showTitle.GetHashCode();
 
-            return TitleIndex.ContainsKey(key) ? TitleIndex[key] : null;
+            return MovieIndex.ContainsKey(key) ? MovieIndex[key] : null;
         }
-        
+
+        public static MovieData FindSeriesTitle(string rshowTitle)
+        {
+            string showTitle = rshowTitle.Where(c => !InvalidChar.Contains(c)).Aggregate(string.Empty, (current, c) => current + c);
+
+            int key = showTitle.GetHashCode();
+
+            return SeriesIndex.ContainsKey(key) ? SeriesIndex[key] : null;
+        }
+
         public static string FindRating(string id)
         {
             return TitleRatings.ContainsKey(id) ? TitleRatings[id] : string.Empty;

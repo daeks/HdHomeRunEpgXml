@@ -241,7 +241,7 @@ def ProcessProgram(xml, program, guideName):
 						else:
 							IsMovie = True
 			else:
-				if ( word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
+				if ( word != "\\n" and word != "movie" and word != "movies" and word != "news" and word !="series" and word !="sports"):
 					if (word not in FiltersToAdd ):
 						FiltersToAdd.append( word )
 
