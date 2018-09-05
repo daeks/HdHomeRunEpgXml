@@ -287,7 +287,9 @@ def ProcessProgram(xml, program, guideName):
 			if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
 				ET.SubElement(xmlProgram, "episode-num", system="original-air-date").text = (HdHomeRunTimeStampToDate(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 			else:
-				ET.SubElement(xmlProgram, "episode-num", system="original-air-date").text = (HdHomeRunTimeStampToDate(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+				ET.SubElement(xmlProgram, "episode-num", system="original-air-date")
+		else:
+			ET.SubElement(xmlProgram, "episode-num", system="original-air-date")				
 			
 	else:
 		
