@@ -58,11 +58,11 @@ This will re-pull the updates and update the docker image.   To brute force this
 * If you subscribe to just the premium Tv you will get 1 Week of programming
 * If you subscribe to the DVR service you will get 2 Weeks of programming
 
-
-** HdHomeRun is a registered Trademark of SiliconDust **
-** HdHomeRun/SiliconDust has NO AFFILIATION with this project **
-** Plex is a registered Trademark of Plex
-** Plex has NO AFFILIATION with this project
+## Important
+* HdHomeRun is a registered Trademark of SiliconDust 
+* HdHomeRun/SiliconDust has NO AFFILIATION with this project 
+* Plex is a registered Trademark of Plex
+* Plex has NO AFFILIATION with this project
 
 **Fairfield Tek L.L.C.**
 
