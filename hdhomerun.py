@@ -281,12 +281,21 @@ def ProcessProgram(xml, program, guideName):
 		
 		#Assign the fake xml version
 		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (str(season-1) + "." + str(episode-1)  + ".0/1")
+
+		if 'OriginalAirdate' in program:
+
+			if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
+				ET.SubElement(xmlProgram, "episode-num", system="original-air-date").text = (HdHomeRunTimeStampToDate(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+			else:
+				ET.SubElement(xmlProgram, "episode-num", system="original-air-date").text = (HdHomeRunTimeStampToDate(program['StartTime']).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
 			
 	else:
 		
 		if (IsSeries):
 			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
 			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+			ET.SubElement(xmlProgram, "episode-num", system="original-air-date")
+
 	
 	if 'OriginalAirdate' in program:
 		#there is something funny w/ prev shown, this tries to address it.
@@ -294,9 +303,10 @@ def ProcessProgram(xml, program, guideName):
 		#so if it's in the future I no longer add it.
 
 		if program['OriginalAirdate'] > 0 and not invalidPreviousShown and (program['OriginalAirdate'] + 86400) < program['StartTime']:
-
 			#The 86400 is because the HdHomeRun feed is off by a day, this fixes that.
 			ET.SubElement(xmlProgram, "previously-shown", start = HdHomeRunTimeStampToDate(program['OriginalAirdate'] + 86400 ).strftime('%Y%m%d%H%M%S') + " " + timezone_offset)
+			
+			
 
 	#Return the endtime so we know where to start from on next loop.
 	return program['EndTime']
