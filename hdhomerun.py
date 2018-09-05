@@ -129,21 +129,31 @@ def ProcessProgram(xml, program, guideName):
 	IsNews = False
 	IsSports = False
 
-	#Well... if it has an epidsode title it must be a series!
-	if ('EpisodeNumber' in program):
-		imdbData = FindSeriesTitle(program['Title'])
-		IsSeries = True
-		IsMovie = False
-	else:
-		imdbData =  FindMovieTitle(program['Title'])
 
-		if (imdbData != 0):
-			if (imdbData[0] == "movie"):
-				IsMovie = True
+	if ('Filter' in program):
+		for word in program['Filter']:
+			if word.lower() == 'movies':
+				IsMovie  = True
 				IsSeries = False
+				imdbData =  FindMovieTitle(program['Title'])
+	
+	if IsMovie == False:
+		#Well... if it has an epidsode title it must be a series!
+		if ('EpisodeNumber' in program):
+			imdbData = FindSeriesTitle(program['Title'])
+			IsSeries = True
+			IsMovie = False
+		else:
+			imdbData =  FindMovieTitle(program['Title'])
+			IsMovie = True
+			if (imdbData != 0):
+				if (imdbData[0] == "movie"):
+					IsMovie = True
+					IsSeries = False
 			else:
-				IsSeries = True
-				IsMovie = False
+					IsSeries = True
+					IsMovie = False
+
 	
 	#We will split the words of the title up, and do some
 	#basic checks on it for news and sports.
