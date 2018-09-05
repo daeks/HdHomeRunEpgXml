@@ -136,6 +136,7 @@ def ProcessProgram(xml, program, guideName):
 				IsMovie  = True
 				IsSeries = False
 				imdbData =  FindMovieTitle(program['Title'])
+				break
 	
 	if IsMovie == False:
 		#Well... if it has an epidsode title it must be a series!
