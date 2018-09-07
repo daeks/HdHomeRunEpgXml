@@ -291,7 +291,7 @@ def ProcessProgram(xml, program, guideName):
 		episode = int(parts[1]) -1
 		
 		#Assign the fake xml version
-		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = (str(season-1) + "." + str(episode-1)  + ".0/1")
+		ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = ( str ( season ) + "." + str ( episode )  + ".0/1")
 
 		if 'OriginalAirdate' in program:
 
