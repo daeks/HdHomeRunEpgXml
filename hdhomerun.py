@@ -248,7 +248,7 @@ def ProcessProgram(xml, program, guideName):
 	if (IsNews):
 		invalidPreviousShown = True
 
-	if ('EpisodeNumber' in program or IsNews or IsSeries):
+	if ('EpisodeNumber' in program  or ('SeriesID' in program) or IsNews or IsSeries):
 		IsMovie = False
 		IsSeries = True
 	
@@ -278,7 +278,7 @@ def ProcessProgram(xml, program, guideName):
 
 
 
-	if ( ('EpisodeNumber') in program  or ('SeriesID' in program)) :
+	if ( ('EpisodeNumber') in program ) :
 
 		#add the friendly display
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
