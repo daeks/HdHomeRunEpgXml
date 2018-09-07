@@ -248,6 +248,7 @@ def ProcessProgram(xml, program, guideName):
 	if (IsNews):
 		invalidPreviousShown = True
 
+
 	if ('EpisodeNumber' in program  or ('SeriesID' in program) or IsNews or IsSeries):
 		IsMovie = False
 		IsSeries = True
