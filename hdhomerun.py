@@ -278,7 +278,7 @@ def ProcessProgram(xml, program, guideName):
 
 
 
-	if ('EpisodeNumber' in program) :
+	if ( ('EpisodeNumber') in program  or ('SeriesID' in program)) :
 
 		#add the friendly display
 		ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = program['EpisodeNumber']
