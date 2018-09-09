@@ -42,7 +42,7 @@ from pprint import pprint
 
 TitleIndex = {}
 invalidChars =['!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/',' ','.','`',"'"]
-sportsCounter = 0
+
 
 
 
@@ -327,6 +327,8 @@ def ProcessProgram(xml, program, guideName):
 
 	
 def processChannel(xml, data, deviceAuth):
+
+
 	
 	WriteLog ("Processing Channel: " + data.get('GuideNumber') + " " + data.get('GuideName'))
 
@@ -460,22 +462,22 @@ def DateTimeToEpisode(startDt, isSports):
 
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = str(int(time_now.strftime('%Y'))-1)
-	if (isSports):
-		sportsCounter = sportsCounter + 1
-		episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(sportsCounter)
-	else:
-		episode =str( int(time_now.strftime('%m%d%H%M'))-1)
+	# if (isSports):
+	# 	sportsCounter = sportsCounter + 1
+	# 	episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(sportsCounter)
+	# else:
+	episode =str( int(time_now.strftime('%m%d%H%M'))-1)
 	return (season + "." + episode  + ". 0/1")
 
 def DateTimeToEpisodeFriendly(startDt,IsSports):
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
 
-	if (isSports):
-		sportsCounter = sportsCounter + 1
-		episode =  time_now.strftime('%m%d%H%M') + str(sportsCounter)	
-	else:
-		episode = time_now.strftime('%m%d%H%M')
+	# if (IsSports):
+	# 	sportsCounter = sportsCounter + 1
+	# 	episode =  time_now.strftime('%m%d%H%M') + str(sportsCounter)	
+	# else:
+	episode = time_now.strftime('%m%d%H%M')
 	return ("S" + season + "E" + episode)
 
 def WriteLog(message):
@@ -628,7 +630,7 @@ def printIt(reader):
 
 def main():
 
-
+	SportsCounter = 0
 			
 	WriteLog("Starting...")
 
