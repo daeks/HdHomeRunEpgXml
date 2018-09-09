@@ -306,8 +306,13 @@ def ProcessProgram(xml, program, guideName):
 	else:
 		
 		if (IsSeries):
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'] , IsSports)
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'] , IsSports)
+			if (IsSports):
+				counter = GetSportsCounter()
+				ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'] , counter)
+				ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'] , counter)
+			else:
+				ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'] , 0)
+				ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'] , 0)
 			ET.SubElement(xmlProgram, "episode-num", system="original-air-date")
 
 	
@@ -458,26 +463,28 @@ def ClearLog():
 		  		  
 	
 
-def DateTimeToEpisode(startDt, isSports):
+def DateTimeToEpisode(startDt, SportsCounter):
 
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = str(int(time_now.strftime('%Y'))-1)
-	# if (isSports):
-	# 	sportsCounter = sportsCounter + 1
-	# 	episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(sportsCounter)
-	# else:
-	episode =str( int(time_now.strftime('%m%d%H%M'))-1)
+
+	if (SportsCounter != 0 ):
+		episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(SportsCounter)
+	else:
+		episode =str( int(time_now.strftime('%m%d%H%M'))-1)
+		
 	return (season + "." + episode  + ". 0/1")
 
-def DateTimeToEpisodeFriendly(startDt,IsSports):
+def DateTimeToEpisodeFriendly(startDt,SportsCounter):
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
 
-	# if (IsSports):
-	# 	sportsCounter = sportsCounter + 1
-	# 	episode =  time_now.strftime('%m%d%H%M') + str(sportsCounter)	
-	# else:
-	episode = time_now.strftime('%m%d%H%M')
+	if (SportsCounter != 0 ):
+		episode =str( int(time_now.strftime('%m%d%H%M'))) + str(SportsCounter)
+	else:
+		episode = time_now.strftime('%m%d%H%M')
+
+	
 	return ("S" + season + "E" + episode)
 
 def WriteLog(message):
@@ -623,6 +630,11 @@ def FindSeriesTitle(showTitle):
 
 MovieList = {}
 SeriesList = {}
+SportsCounter = [0]
+
+def GetSportsCounter():
+	SportsCounter[0] = SportsCounter[0] + 1
+	return SportsCounter[0]
 
 def printIt(reader):
 	for row in reader:
@@ -630,7 +642,7 @@ def printIt(reader):
 
 def main():
 
-	SportsCounter = 0
+	SportsCounter[0] = 0
 			
 	WriteLog("Starting...")
 
