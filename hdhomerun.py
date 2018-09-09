@@ -460,10 +460,10 @@ def DateTimeToEpisode(startDt, isSports):
 
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = str(int(time_now.strftime('%Y'))-1)
-	if (isSports)
+	if (isSports):
 		sportsCounter = sportsCounter + 1
 		episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(sportsCounter)
-	else
+	else:
 		episode =str( int(time_now.strftime('%m%d%H%M'))-1)
 	return (season + "." + episode  + ". 0/1")
 
@@ -471,10 +471,10 @@ def DateTimeToEpisodeFriendly(startDt,IsSports):
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
 
-	if (isSports)
+	if (isSports):
 		sportsCounter = sportsCounter + 1
 		episode =  time_now.strftime('%m%d%H%M') + str(sportsCounter)	
-	else
+	else:
 		episode = time_now.strftime('%m%d%H%M')
 	return ("S" + season + "E" + episode)
 
