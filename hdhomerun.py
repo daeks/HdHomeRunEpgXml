@@ -42,7 +42,7 @@ from pprint import pprint
 
 TitleIndex = {}
 invalidChars =['!','@','#','$','%','^','&','&','*','(','(',')','_','-','+','=','{','}','[',']','|','\\',':',';','<',',','>','>','?','/',' ','.','`',"'"]
-
+sportsCounter = 0
 
 
 
@@ -306,8 +306,8 @@ def ProcessProgram(xml, program, guideName):
 	else:
 		
 		if (IsSeries):
-			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'])
-			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'])
+			ET.SubElement(xmlProgram, "episode-num", system="xmltv_ns").text = DateTimeToEpisode(program['StartTime'] , IsSports)
+			ET.SubElement(xmlProgram, "episode-num", system="onscreen").text = DateTimeToEpisodeFriendly(program['StartTime'] , IsSports)
 			ET.SubElement(xmlProgram, "episode-num", system="original-air-date")
 
 	
@@ -343,7 +343,7 @@ def processChannel(xml, data, deviceAuth):
 	if 'Affiliate' in data:
 		ET.SubElement(xmlChannel, "display-name").text = data.get('Affiliate')
 
-
+ 
 	if 'ImageURL' in data:
 		ET.SubElement(xmlChannel, "icon", src= data.get('ImageURL'))
 
@@ -456,17 +456,26 @@ def ClearLog():
 		  		  
 	
 
-def DateTimeToEpisode(startDt):
+def DateTimeToEpisode(startDt, isSports):
 
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = str(int(time_now.strftime('%Y'))-1)
-	episode =str( int(time_now.strftime('%m%d%H%M'))-1)
+	if (isSports)
+		sportsCounter = sportsCounter + 1
+		episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(sportsCounter)
+	else
+		episode =str( int(time_now.strftime('%m%d%H%M'))-1)
 	return (season + "." + episode  + ". 0/1")
 
-def DateTimeToEpisodeFriendly(startDt):
+def DateTimeToEpisodeFriendly(startDt,IsSports):
 	time_now = HdHomeRunTimeStampToDate(startDt)
 	season = time_now.strftime('%Y')
-	episode = time_now.strftime('%m%d%H%M')
+
+	if (isSports)
+		sportsCounter = sportsCounter + 1
+		episode =  time_now.strftime('%m%d%H%M') + str(sportsCounter)	
+	else
+		episode = time_now.strftime('%m%d%H%M')
 	return ("S" + season + "E" + episode)
 
 def WriteLog(message):
