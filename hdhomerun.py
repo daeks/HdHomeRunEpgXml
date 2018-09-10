@@ -257,11 +257,11 @@ def ProcessProgram(xml, program, guideName):
 		IsMovie = False
 		IsSeries = True
 		invalidPreviousShown = True
-
-	if (str(program['Title']).lower()=="superstore"):
-		IsNews = False
-		IsMovie = False
-		IsSeries = True		
+	else: 
+		if (str(program['Title']).lower()=="superstore"):
+			IsNews = False
+			IsMovie = False
+			IsSeries = True		
 
 
 	if ('EpisodeNumber' in program   or IsNews or IsSeries):
