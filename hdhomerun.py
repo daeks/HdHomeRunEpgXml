@@ -160,6 +160,7 @@ def ProcessProgram(xml, program, guideName):
 	#basic checks on it for news and sports.
 	words = str(program['Title']).lower().split()
 
+
 	if ('news' in words) or ('cnn' in words) or ('msnbc' in words) or ('weather' in words) or ('newsline' in words):
 		IsNews = True
 		IsMovie = False
@@ -179,7 +180,17 @@ def ProcessProgram(xml, program, guideName):
 				if ('cricket' in words) or ('fencing' in words) or ('pga' in words) or ('wrestling' in words) or ('wwe' in words) or ('tennis' in words) or ('sportscenter' in words):
 					IsSports=True
 					IsMovie = False
-					IsSeries = True															
+					IsSeries = True			
+	if (str(program['Title']).lower()=="60 minutes")
+		IsNews = True
+		IsMovie = False
+		IsSeries = True
+		invalidPreviousShown = True
+		
+	if (str(program['Title']).lower()=="superstore")
+		IsNews = False
+		IsMovie = False
+		IsSeries = True
 
 	if (imdbData != 0):
 		
@@ -277,7 +288,7 @@ def ProcessProgram(xml, program, guideName):
 		if (word != "\\n" and word != "movie" and word != "news" and word !="series" and word !="sports"):
 			ET.SubElement(xmlProgram, "category",lang="en").text = word
 
-
+	
 
 	if ( ('EpisodeNumber') in program ) :
 
@@ -472,7 +483,7 @@ def DateTimeToEpisode(startDt, SportsCounter):
 		episode =str( int(time_now.strftime('%m%d%H%M'))-1) + str(SportsCounter)
 	else:
 		episode =str( int(time_now.strftime('%m%d%H%M'))-1)
-		
+
 	return (season + "." + episode  + ". 0/1")
 
 def DateTimeToEpisodeFriendly(startDt,SportsCounter):
