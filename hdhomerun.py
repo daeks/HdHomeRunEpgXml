@@ -181,16 +181,7 @@ def ProcessProgram(xml, program, guideName):
 					IsSports=True
 					IsMovie = False
 					IsSeries = True			
-	if (str(program['Title']).lower()=="60 minutes"):
-		IsNews = True
-		IsMovie = False
-		IsSeries = True
-		invalidPreviousShown = True
-
-	if (str(program['Title']).lower()=="superstore"):
-		IsNews = False
-		IsMovie = False
-		IsSeries = True
+	
 
 	if (imdbData != 0):
 		
@@ -258,6 +249,19 @@ def ProcessProgram(xml, program, guideName):
 
 	if (IsNews):
 		invalidPreviousShown = True
+
+	#Overrides, for know issues
+
+	if (str(program['Title']).lower()=="60 minutes"):
+		IsNews = True
+		IsMovie = False
+		IsSeries = True
+		invalidPreviousShown = True
+
+	if (str(program['Title']).lower()=="superstore"):
+		IsNews = False
+		IsMovie = False
+		IsSeries = True		
 
 
 	if ('EpisodeNumber' in program   or IsNews or IsSeries):
